@@ -1,15 +1,12 @@
-import { createClient } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
 import RadialBarChart from "./Components/RadialBarChart";
 import IncomeExpensesChart from "./Components/IncomeAndExpensesChart";
-import { Col, Row } from "antd";
+import { Row, Col } from "antd";
+import { supabase } from "../../supabaseClient";
+
 
 const Overview = () => {
-  const [data, setData] = useState(null);
-  const supabaseUrl = "https://dilsljuynpaogrrxqolf.supabase.co";
-  const supabaseKey =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpbHNsanV5bnBhb2dycnhxb2xmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYyMTc0MDAsImV4cCI6MjA1MTc5MzQwMH0.4hvawiI87VmdXSXYlxKnYp7nkn7emE4rn6Y3hWTE4LU";
-  const supabase = createClient(supabaseUrl, supabaseKey);
 
   useEffect(() => {
     async function fetchData() {
