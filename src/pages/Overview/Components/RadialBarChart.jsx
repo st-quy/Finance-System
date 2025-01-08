@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import ApexCharts from "apexcharts";
 
-const RadialBarChart = () => {
+const RadialBarChart = ( {data }) => {
   useEffect(() => {
     const options2 = {
       chart: {

@@ -1,9 +1,10 @@
 import { useEffect } from "react";
 import ApexCharts from "apexcharts";
 
-const IncomeExpensesChart = () => {
+const IncomeExpensesChart = ( data ) => {
   useEffect(() => {
     const options = {
+      // expense table에서 받아오기
       colors: ["#1A56DB", "#3ABFF8", "#FACC15"], // Colors for Personal, Technology, Profit
       series: [
         {
