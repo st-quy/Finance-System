@@ -95,7 +95,7 @@ export const ProtectedRoute = () => {
           />
         </Header>
         <Content
-          className={`m-4 p-6 overflow-auto  ${activeKey === "overview" ? "bg-none" : "bg-white rounded-xl shadow-xl"}`}
+          className={`m-4 p-6 overflow-auto !bg-none`}
         >
           <Outlet />
         </Content>
