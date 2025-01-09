@@ -1,4 +1,7 @@
 import * as React from "react";
+import { useEffect, useState } from "react";
+import { supabase } from '../../supabaseClient';
+import dayjs from "dayjs";
 
 const InfoItem = ({ icon, label, value, valueClassName = "" }) => (
   <div className="flex gap-10 justify-between items-center w-full text-sm max-w-[429px] max-md:max-w-full">
@@ -17,32 +20,51 @@ const Tag = ({ text, color }) => (
 );
 
 const ProjectSummary = () => {
+  const [projects, setProjects] = useState([]);
+
+  useEffect(() => {
+    async function fetchProjects() {
+      let { data: projects, error } = await supabase.from("project").select("*").eq("project_id", 2);
+      if (error) {
+        console.error("Error fetching projects:", error);
+      } else {
+        setProjects(projects[0]);
+      }
+    }
+    fetchProjects();
+  }, []);
+  
   const projectInfo = [
-    { icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/f2a99e3042e45d5496bd593d03a65f0e112c6f198e507ee72b75d399e36993e7?placeholderIfAbsent=true&apiKey=1c5e4b15884e46cbb4105350fa4c2d13", label: "Created At", value: "May, 15 2024 14:23 PM", valueClassName: "font-semibold text-stone-300" },
-    { icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/b428cfe96a2023809c0c9a249cce2678ce7a92be0d55713d1c834789df155e2a?placeholderIfAbsent=true&apiKey=1c5e4b15884e46cbb4105350fa4c2d13", label: "Tags", value: (
-      <div className="flex gap-1 items-start text-xs font-semibold">
-        <Tag text="Website" color="pink-400" />
-        <Tag text="Ai" color="emerald-500" />
-      </div>
-    )},
-    { icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/8b1c3a12b02172235db66317f668e9769dc8e8bb7d0715b53511fc5910d8e077?placeholderIfAbsent=true&apiKey=1c5e4b15884e46cbb4105350fa4c2d13", label: "People", value: (
-      <div className="flex gap-1 items-start text-xs font-semibold text-indigo-500">
-        <div className="overflow-hidden gap-2.5 px-2.5 py-1 bg-indigo-500 bg-opacity-20 rounded-[33px]">
-          5 People
+    { icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/f2a99e3042e45d5496bd593d03a65f0e112c6f198e507ee72b75d399e36993e7?placeholderIfAbsent=true&apiKey=1c5e4b15884e46cbb4105350fa4c2d13", label: "Created At", value: projects.start_date, valueClassName: "font-semibold text-stone-300" },
+    {
+      icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/b428cfe96a2023809c0c9a249cce2678ce7a92be0d55713d1c834789df155e2a?placeholderIfAbsent=true&apiKey=1c5e4b15884e46cbb4105350fa4c2d13", label: "Tags", value: (
+        <div className="flex gap-1 items-start text-xs font-semibold">
+          <Tag text={projects.project_type} color="emerald-500" />
         </div>
-      </div>
-    )},
-    { icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/d9258547c55b6a6dddb71110d48a9295065e00512d0f4016c254a277a3ea13fd?placeholderIfAbsent=true&apiKey=1c5e4b15884e46cbb4105350fa4c2d13", label: "Value", value: (
-      <div className="overflow-hidden gap-1.5 self-stretch px-2 py-2 my-auto bg-gray-200 rounded text-neutral-400">
-        $ 1 Millions
-      </div>
-    )}
+      )
+    },
+    {
+      icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/8b1c3a12b02172235db66317f668e9769dc8e8bb7d0715b53511fc5910d8e077?placeholderIfAbsent=true&apiKey=1c5e4b15884e46cbb4105350fa4c2d13", label: "People", value: (
+        <div className="flex gap-1 items-start text-xs font-semibold text-indigo-500">
+          <div className="overflow-hidden gap-2.5 px-2.5 py-1 bg-indigo-500 bg-opacity-20 rounded-[33px]">
+            5 People
+          </div>
+        </div>
+      )
+    },
+    {
+      icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/d9258547c55b6a6dddb71110d48a9295065e00512d0f4016c254a277a3ea13fd?placeholderIfAbsent=true&apiKey=1c5e4b15884e46cbb4105350fa4c2d13", label: "Value", value: (
+        <div className="overflow-hidden gap-1.5 self-stretch px-2 py-2 my-auto bg-gray-200 rounded text-neutral-400">
+          $ {projects.project_value}
+        </div>
+      )
+    }
   ];
 
   return (
     <div className="rounded-lg flex flex-col p-6 w-full bg-white border-b border-slate-200 max-md:px-5 max-md:max-w-full">
-      <div className="px-8 pt-32 pb-8 w-full rounded-2xl max-md:px-5 max-md:pt-24 max-md:max-w-full bg-cover bg-center" 
-      style={{ backgroundImage: "url('src/assets/Images/MessGradient/mess1.png')" }} 
+      <div className="px-8 pt-32 pb-8 w-full rounded-2xl max-md:px-5 max-md:pt-24 max-md:max-w-full bg-cover bg-center"
+        style={{ backgroundImage: "url('src/assets/Images/MessGradient/mess1.png')" }}
       >
         <div className="flex gap-5 max-md:flex-col">
           <div className="flex flex-col w-[32%] max-md:ml-0 max-md:w-full">
@@ -55,7 +77,7 @@ const ProjectSummary = () => {
               />
               <div className="flex flex-col my-auto">
                 <div className="text-base font-bold text-white">
-                  This is the project name
+                  {projects.project_name}
                 </div>
                 <div className="self-start text-sm font-semibold text-white text-opacity-70">
                   This is the client's name
@@ -70,7 +92,7 @@ const ProjectSummary = () => {
                   CREATED
                 </div>
                 <div className="mt-1 font-medium text-black">
-                  2024 Mar 23, 10:34 PM
+                  {projects.start_date}
                 </div>
               </div>
               <div className="flex flex-col">
@@ -78,7 +100,7 @@ const ProjectSummary = () => {
                   DEADLINE
                 </div>
                 <div className="mt-1 font-medium text-black">
-                  2024 Jun 02, 04:01 PM
+                  {projects.end_date || "Now"}
                 </div>
               </div>
               <div className="flex flex-col">
@@ -86,7 +108,7 @@ const ProjectSummary = () => {
                   TRACKED TIME
                 </div>
                 <div className="mt-1 font-medium text-black">
-                  3 Months 3 Days 10H 32M
+                  {dayjs().diff(projects.start_date, "day") } days
                 </div>
               </div>
             </div>
@@ -107,7 +129,7 @@ const ProjectSummary = () => {
           <div className="flex flex-col ml-5 w-[54%] max-md:ml-0 max-md:w-full">
             <div className="flex flex-col w-full text-sm max-md:mt-10 max-md:max-w-full">
               <div className="flex gap-4 self-start font-semibold whitespace-nowrap text-neutral-600">
-                <div>Describtion</div>
+                <div>Description</div>
                 <img
                   loading="lazy"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/8af5eaf28e11fe140384aa06cbb3f77ac6ffee473ec23c6d91d5c2c5266a1ded?placeholderIfAbsent=true&apiKey=1c5e4b15884e46cbb4105350fa4c2d13"

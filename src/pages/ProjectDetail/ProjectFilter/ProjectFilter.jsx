@@ -1,6 +1,9 @@
 import * as React from "react";
+import { supabase } from '../../../supabaseClient';
+
 
 const ProjectFilter = () => {
+    
     const [activeTab, setActiveTab] = React.useState("All Date");
 
     const tabs = [
