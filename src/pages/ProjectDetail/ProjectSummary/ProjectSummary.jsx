@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useEffect, useState } from "react";
-import { supabase } from '../../supabaseClient';
+import { supabase } from '../../../supabaseClient';
 import dayjs from "dayjs";
 
 const InfoItem = ({ icon, label, value, valueClassName = "" }) => (

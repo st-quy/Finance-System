@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Space, Button, Pagination } from 'antd';
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { supabase } from '../../../supabaseClient';
-import ProjectFilter from '../ProjectFilter/ProjectFilter';
+import ProjectFilter from '../ExpenseFilter/expenseFilter';
 
 const ListItem = ({ item, isSelected, onSelect, onDelete }) => (
   <div className="flex w-full border-b border-zinc-200 hover:bg-gray-50">

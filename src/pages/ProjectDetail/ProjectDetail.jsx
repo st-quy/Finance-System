@@ -1,8 +1,8 @@
 import * as React from "react";
-import ProjectSummary from "./ProjectSummary";
+import ProjectSummary from "./ProjectSummary/ProjectSummary";
 import BudgetDistribution from "./ExpenseDistribution/BudgetDistribution";
 import { Row, Col } from "antd";
-import TransactionList from "./TransactionList/TransactionList";
+import TransactionList from "./ExpenseList/expenseList";
 import { useParams } from "react-router-dom";
 
 const ProjectDetails = () => {
