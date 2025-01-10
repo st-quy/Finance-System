@@ -19,12 +19,12 @@ const Tag = ({ text, color }) => (
   </div>
 );
 
-const ProjectSummary = () => {
+const ProjectSummary = ({ projectId }) => {
   const [projects, setProjects] = useState([]);
 
   useEffect(() => {
     async function fetchProjects() {
-      let { data: projects, error } = await supabase.from("project").select("*").eq("project_id", 90);
+      let { data: projects, error } = await supabase.from("project").select("*").eq("project_id", projectId );
       if (error) {
         console.error("Error fetching projects:", error);
       } else {
@@ -32,7 +32,7 @@ const ProjectSummary = () => {
       }
     }
     fetchProjects();
-  }, []);
+  }, [projectId]);
   
   const projectInfo = [
     { icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/f2a99e3042e45d5496bd593d03a65f0e112c6f198e507ee72b75d399e36993e7?placeholderIfAbsent=true&apiKey=1c5e4b15884e46cbb4105350fa4c2d13", label: "Created At", value: projects.start_date, valueClassName: "font-semibold text-stone-300" },

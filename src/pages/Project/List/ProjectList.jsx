@@ -2,6 +2,8 @@ import { createClient } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 import { Table, Typography, Card, Button, Space, Tag } from "antd";
 import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
+import { useNavigate } from 'react-router-dom';
+
 
 const ProjectList = () => {
   const [projects, setProjects] = useState([]); 
@@ -9,6 +11,11 @@ const ProjectList = () => {
   const supabaseKey =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpbHNsanV5bnBhb2dycnhxb2xmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYyMTc0MDAsImV4cCI6MjA1MTc5MzQwMH0.4hvawiI87VmdXSXYlxKnYp7nkn7emE4rn6Y3hWTE4LU";
   const supabase = createClient(supabaseUrl, supabaseKey);
+  const navigate = useNavigate();
+
+  const handleViewProject = (projectId) => {
+    navigate(`/projectsDetail/${projectId}`);
+  };
 
   useEffect(() => {
     async function fetchProjects() {
@@ -55,7 +62,9 @@ const ProjectList = () => {
       key: "action",
       render: (_, record) => (
         <Space>
-          <Button icon={<EyeOutlined />} />
+          <Button 
+          icon={<EyeOutlined />} 
+          onClick={() => handleViewProject(record.project_id)}/>
           <Button icon={<DeleteOutlined />} danger />
         </Space>
       ),

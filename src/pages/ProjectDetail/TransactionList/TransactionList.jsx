@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Space, Button } from 'antd';
+import { Space, Button, Pagination } from 'antd';
 import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { supabase } from '../../../supabaseClient';
 import ProjectFilter from '../ProjectFilter/ProjectFilter';
 
-const ListItem = ({ item, isSelected, onSelect }) => (
+const ListItem = ({ item, isSelected, onSelect, onDelete }) => (
   <div className="flex w-full border-b border-zinc-200 hover:bg-gray-50">
     <div className="flex items-center p-4 w-14">
       <input
@@ -20,10 +20,23 @@ const ListItem = ({ item, isSelected, onSelect }) => (
     <div className="flex-1 p-4">{item.description}</div>
     <div className="flex-none w-32 p-4">{"$" + item.amount}</div>
     <div className="flex-none w-32 p-4">{
-        <Space>
-          <Button icon={<EditOutlined  />} />
-          <Button icon={<DeleteOutlined />} danger />
-        </Space>
+      <Space>
+        <Button icon={<EditOutlined />} />
+        <Button icon={<DeleteOutlined onClick={
+          async () => {
+            let { error } = await supabase
+              .from("expense")
+              .delete()
+              .eq("expense_id", item.expense_id);
+            if (error) {
+              console.error("Error deleting expense:", error);
+            } else {
+              onDelete();
+            }
+          }
+        }
+        />} danger />
+      </Space>
     }</div>
   </div>
 );
@@ -45,20 +58,31 @@ const TableHeader = () => (
   </div>
 );
 
-const ListView = () => {
+const ListView = ({projectId}) => {
   const [expenses, setExpenses] = useState([]);
   const [filteredExpenses, setFilteredExpenses] = useState([]);
   const [selectedItems, setSelectedItems] = useState(new Set());
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const paginatedExpenses = filteredExpenses.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   useEffect(() => {
     fetchExpenses();
-  }, []);
+  }, [projectId]);
 
   async function fetchExpenses() {
     let { data: expense, error } = await supabase
       .from("expense")
       .select("*")
-      .eq("project_id", 90);
+      .eq("project_id", projectId);
 
     if (error) {
       console.error("Error fetching expenses:", error);
@@ -106,16 +130,24 @@ const ListView = () => {
       <div className="w-full overflow-x-auto rounded-lg border border-zinc-200 shadow-lg">
         <div className="min-w-[1024px]">
           <TableHeader />
-          {filteredExpenses.map((item) => (
+          {paginatedExpenses.map((item) => (
             <ListItem
               key={item.expense_id}
               item={item}
               isSelected={selectedItems.has(item.expense_id)}
               onSelect={() => handleItemSelect(item.expense_id)}
+              onDelete={fetchExpenses}
+
             />
           ))}
         </div>
       </div>
+      <Pagination
+        defaultCurrent={1}
+        total={filteredExpenses.length}
+        pageSize={itemsPerPage}
+        onChange={handlePageChange}
+      />
     </div>
   );
 };

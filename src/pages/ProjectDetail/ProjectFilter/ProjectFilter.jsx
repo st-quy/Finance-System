@@ -1,13 +1,24 @@
 import React, { useState } from 'react';
 import { PlusOutlined } from "@ant-design/icons";
-import { DatePicker, Button } from "antd";
-import dayjs from 'dayjs'
+import { DatePicker, Button, Segmented } from "antd";
+import dayjs from 'dayjs';
+import './ProjectFilter.css';
 
 const ProjectFilter = ({ onFilterChange }) => {
     const [activeTab, setActiveTab] = useState("All Date");
     const [showFilters, setShowFilters] = useState(false);
     const [dateRange, setDateRange] = useState({ start: null, end: null });
     const [selectedCategories, setSelectedCategories] = useState([]);
+    const [rotate, setRotate] = useState(false);
+
+    const handleMouseEnter = () => {
+        setRotate(true);
+    };
+
+    const handleMouseLeave = () => {
+        setRotate(false);
+    };
+
 
     const tabs = [
         { id: 1, label: "All Date" },
@@ -29,6 +40,7 @@ const ProjectFilter = ({ onFilterChange }) => {
         const now = dayjs();
         let startDate = null;
         let endDate = dayjs();
+
 
         switch (label) {
             case "12 Months":
@@ -65,13 +77,14 @@ const ProjectFilter = ({ onFilterChange }) => {
             dateRange,
             categories: updatedCategories
         });
+
     };
 
     return (
         <div className="relative">
             <div className="flex justify-between items-center w-full">
                 {/* Left side - Tabs */}
-                <div className="flex overflow-hidden items-center h-10 p-1 text-sm font-medium bg-white rounded-xl border border-solid border-zinc-200 text-slate-500">
+                <Button className="flex overflow-hidden items-center h-10 p-1 text-sm font-medium bg-white rounded-xl border border-solid border-zinc-200 text-slate-500">
                     {tabs.map((tab) => (
                         <div
                             key={tab.id}
@@ -89,11 +102,15 @@ const ProjectFilter = ({ onFilterChange }) => {
                             {tab.label}
                         </div>
                     ))}
-                </div>
+                </Button>
 
                 {/* Right side - Buttons */}
                 <div className="flex items-center space-x-2">
-                    <Button type="primary" shape="circle" icon={<PlusOutlined />} />
+                    <Button type="primary" shape="circle" icon={<PlusOutlined
+                        onMouseEnter={handleMouseEnter}
+                        onMouseLeave={handleMouseLeave}
+                    />}
+                    />
 
 
                     <DatePicker.RangePicker className="flex gap-2 justify-center items-center h-10 px-3 bg-white rounded-xl border border-solid border-zinc-200"
