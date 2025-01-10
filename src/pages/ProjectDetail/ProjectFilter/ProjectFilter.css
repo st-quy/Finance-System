@@ -1,0 +1,4 @@
+.rotate {
+    transition: transform 0.5s;
+    transform: rotate(180deg);
+  }

@@ -2,24 +2,30 @@ import { useEffect, useState } from "react";
 import RadialBarChart from "./Components/RadialBarChart";
 import IncomeExpensesChart from "./Components/IncomeAndExpensesChart";
 import { Col, Row, Table, Typography, Card, Button, Space } from "antd";
-import {supabase} from '../../supabaseClient'
+import { EyeOutlined } from "@ant-design/icons";
+import { supabase } from '../../supabaseClient';
+import { useNavigate } from 'react-router-dom';
+
 const Overview = () => {
   const [data, setData] = useState(null);
-  const [projects, setProjects] = useState([]); 
-
+  const [projects, setProjects] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    async function fetchData() {
-      let { data: User, error } = await supabase.from("User").select("name");
+    const fetchData = async () => {
+      const { data: User, error } = await supabase.from("User").select("name");
       if (error) {
         console.error("Error fetching user data:", error);
       } else {
         setData(User);
       }
-    }
+    };
+    fetchData();
+  }, []);
 
-    async function fetchProjects() {
-      let { data: projects, error } = await supabase.from("project").select("*");
+  useEffect(() => {
+    const fetchProjects = async () => {
+      const { data: projects, error } = await supabase.from("project").select("*");
       if (error) {
         console.error("Error fetching projects:", error);
       } else {
@@ -28,13 +34,27 @@ const Overview = () => {
           .slice(0, 7);
         setProjects(sortedProjects);
       }
-    }
-
-    fetchData();
+    };
     fetchProjects();
   }, []);
 
+  const handleViewProject = (projectId) => {
+    navigate(`/projectsDetail/${projectId}`);
+  };
+
   const columns = [
+    {
+      title: "Action",
+      key: "action",
+      render: (_, record) => (
+        <Space>
+          <Button
+            icon={<EyeOutlined />}
+            onClick={() => handleViewProject(record.project_id)}
+          />
+        </Space>
+      ),
+    },
     {
       title: "Project Name",
       dataIndex: "project_name",
@@ -54,7 +74,7 @@ const Overview = () => {
       title: "End Date",
       dataIndex: "end_date",
       key: "end_date",
-      render: (text) => (text ? text : "In Progress"), 
+      render: (text) => (text ? text : "In Progress"),
     },
     {
       title: "User ID",
@@ -65,7 +85,6 @@ const Overview = () => {
 
   return (
     <div style={{ padding: "20px", backgroundColor: "#f5f5f5", minHeight: "100vh" }}>
-      {/* 기존 RadialBarChart와 IncomeExpensesChart */}
       <Row className="w-full" gutter={[16, 16]}>
         <Col xs={24} sm={24} md={10} lg={10}>
           <RadialBarChart />
@@ -75,7 +94,6 @@ const Overview = () => {
         </Col>
       </Row>
 
-      {/* 프로젝트 내역 테이블 */}
       <div style={{ marginTop: "20px" }}>
         <Card
           bordered
@@ -93,13 +111,9 @@ const Overview = () => {
               marginBottom: "20px",
             }}
           >
-            <Typography.Title
-              level={3}
-              style={{ textAlign: "left", margin: 0 }}
-            >
+            <Typography.Title level={3} style={{ textAlign: "left", margin: 0 }}>
               Recent Projects
             </Typography.Title>
-            {/* 버튼 */}
             <Space>
               <Button>Select Date</Button>
               <Button>Filters</Button>

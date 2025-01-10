@@ -18,7 +18,7 @@ const PrivateRoute = [
         element: <ProjectList />,
       },
       {
-        path: "projectsDetail",
+        path: "projectsDetail/:project_id",
         element: <ProjectDetails />,
       },
     ],

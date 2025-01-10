@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../../supabaseClient';
 
-const BudgetDistribution = () => {
+const BudgetDistribution = ({projectId}) => {
     const [expenses, setExpenses] = useState([]);
     const [project, setProject] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -17,11 +17,11 @@ const BudgetDistribution = () => {
                     supabase
                         .from("expense")
                         .select("category, amount")
-                        .eq("project_id", 3),
+                        .eq("project_id", projectId),
                     supabase
                         .from("project")
                         .select("project_value")
-                        .eq("project_id", 3)
+                        .eq("project_id", projectId)
                         .single()
                 ]);
 
@@ -39,7 +39,7 @@ const BudgetDistribution = () => {
         }
 
         fetchData();
-    }, []);
+    }, [projectId]);
 
     useEffect(() => {
         if (expenses.length > 0 && project?.project_value) {
