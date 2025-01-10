@@ -2,6 +2,8 @@
 import ProjectList from "@pages/Project/List/ProjectList.jsx";
 import { ProtectedRoute } from "./ProtectedRoute/ProtectedRoute.jsx";
 import Overview from "@pages/Overview/Overview.jsx";
+import ProjectDetails from "@pages/ProjectDetail/ProjectDetail.jsx";
+
 const PrivateRoute = [
   {
     path: "/",
@@ -14,6 +16,10 @@ const PrivateRoute = [
       {
         path: "projects",
         element: <ProjectList />,
+      },
+      {
+        path: "projectsDetail",
+        element: <ProjectDetails />,
       },
     ],
   },
