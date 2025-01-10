@@ -1,16 +1,68 @@
 import { useEffect, useState } from "react";
+import {
+  Table,
+  Typography,
+  Card,
+  Button,
+  Space,
+  Modal,
+  message,
+  Col,
+  Row,
+} from "antd";
+import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "../../supabaseClient";
 import RadialBarChart from "./Components/RadialBarChart";
 import IncomeExpensesChart from "./Components/IncomeAndExpensesChart";
-import { Col, Row, Table, Typography, Card, Button, Space } from "antd";
-import { EyeOutlined } from "@ant-design/icons";
-import { supabase } from '../../supabaseClient';
-import { useNavigate } from 'react-router-dom';
 
 const Overview = () => {
   const [data, setData] = useState(null);
   const [projects, setProjects] = useState([]);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
+  const fetchProjects = async () => {
+    let { data: projects, error } = await supabase
+      .from("project")
+      .select(
+        "project_id, project_name, project_value, project_type, start_date, end_date"
+      )
+      .order("project_id", { ascending: true }); // project_id 기준 오름차순 정렬
+    if (error) {
+      console.error("Error fetching projects:", error);
+    } else {
+      setProjects(projects);
+    }
+  };
+  const handleDelete = async (projectId) => {
+    // 삭제 확인 모달 표시
+    Modal.confirm({
+      title: "Are you sure?",
+      content: "This action will permanently delete the project.",
+      okText: "Yes, delete it",
+      cancelText: "Cancel",
+      onOk: async () => {
+        // Supabase에서 프로젝트 삭제
+        const { error } = await supabase
+          .from("project")
+          .delete()
+          .eq("project_id", projectId);
+
+        if (error) {
+          message.error("Failed to delete the project.");
+          console.error("Error deleting project:", error);
+        } else {
+          message.success("Project deleted successfully.");
+          // 삭제 후 테이블 데이터 업데이트
+          fetchProjects();
+        }
+      },
+    });
+  };
   useEffect(() => {
     const fetchData = async () => {
       const { data: User, error } = await supabase.from("User").select("name");
@@ -25,7 +77,9 @@ const Overview = () => {
 
   useEffect(() => {
     const fetchProjects = async () => {
-      const { data: projects, error } = await supabase.from("project").select("*");
+      const { data: projects, error } = await supabase
+        .from("project")
+        .select("*");
       if (error) {
         console.error("Error fetching projects:", error);
       } else {
@@ -39,21 +93,14 @@ const Overview = () => {
   }, []);
 
   const handleViewProject = (projectId) => {
-    navigate(`/projectsDetail/${projectId}`);
+    navigate(`/projects/detail/${projectId}`);
   };
 
   const columns = [
     {
-      title: "Action",
-      key: "action",
-      render: (_, record) => (
-        <Space>
-          <Button
-            icon={<EyeOutlined />}
-            onClick={() => handleViewProject(record.project_id)}
-          />
-        </Space>
-      ),
+      title: "Project ID",
+      dataIndex: "project_id",
+      key: "project_id",
     },
     {
       title: "Project Name",
@@ -77,14 +124,43 @@ const Overview = () => {
       render: (text) => (text ? text : "In Progress"),
     },
     {
-      title: "User ID",
-      dataIndex: "user_id",
-      key: "user_id",
+      title: "Value",
+      dataIndex: "project_value",
+      key: "project_value",
+      render: (value) => (value ? `$${value.toLocaleString()}` : "N/A"), // 가격을 포맷
+    },
+    {
+      title: "Action",
+      key: "action",
+      render: (_, record) => (
+        <Space>
+          <Button
+            icon={<EyeOutlined />}
+            onClick={() => handleViewProject(record.project_id)}
+          />
+          <Button
+            icon={<DeleteOutlined />}
+            danger
+            onClick={() => handleDelete(record.project_id)}
+          />
+          <Button
+            onClick={() => navigate(`/projects/edit/${record.project_id}`)}
+          >
+            Edit
+          </Button>
+        </Space>
+      ),
     },
   ];
 
   return (
-    <div style={{ padding: "20px", backgroundColor: "#f5f5f5", minHeight: "100vh" }}>
+    <div
+      style={{
+        padding: "20px",
+        backgroundColor: "#f5f5f5",
+        minHeight: "100vh",
+      }}
+    >
       <Row className="w-full" gutter={[16, 16]}>
         <Col xs={24} sm={24} md={10} lg={10}>
           <RadialBarChart />
@@ -111,7 +187,10 @@ const Overview = () => {
               marginBottom: "20px",
             }}
           >
-            <Typography.Title level={3} style={{ textAlign: "left", margin: 0 }}>
+            <Typography.Title
+              level={3}
+              style={{ textAlign: "left", margin: 0 }}
+            >
               Recent Projects
             </Typography.Title>
             <Space>
@@ -139,5 +218,4 @@ const Overview = () => {
     </div>
   );
 };
-
 export default Overview;

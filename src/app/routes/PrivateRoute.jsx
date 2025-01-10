@@ -1,8 +1,11 @@
 // import { lazy } from 'react';
 import ProjectList from "@pages/Project/List/ProjectList.jsx";
+import ProjectCreate from "@pages/Project/Create/ProjectCreate.jsx";
 import { ProtectedRoute } from "./ProtectedRoute/ProtectedRoute.jsx";
 import Overview from "@pages/Overview/Overview.jsx";
+import ProjectEdit from "@pages/Project/Edit/ProjectEdit.jsx";
 import ProjectDetails from "@pages/ProjectDetail/ProjectDetail.jsx";
+import ProjectDetail from "@pages/ProjectDetail/ProjectDetail.jsx";
 
 const PrivateRoute = [
   {
@@ -15,11 +18,24 @@ const PrivateRoute = [
       },
       {
         path: "projects",
-        element: <ProjectList />,
-      },
-      {
-        path: "projectsDetail/:project_id",
-        element: <ProjectDetails />,
+        children: [
+          {
+            path: "",
+            element: <ProjectList />,
+          },
+          {
+            path: "create",
+            element: <ProjectCreate />,
+          },
+          {
+            path: "edit/:projectId",
+            element: <ProjectEdit />,
+          },
+          {
+            path: "detail/:projectId",
+            element: <ProjectDetail />,
+          },
+        ],
       },
     ],
   },
