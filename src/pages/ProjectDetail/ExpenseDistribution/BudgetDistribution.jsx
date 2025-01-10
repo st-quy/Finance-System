@@ -17,11 +17,11 @@ const BudgetDistribution = () => {
                     supabase
                         .from("expense")
                         .select("category, amount")
-                        .eq("project_id", 3),
+                        .eq("project_id", 60),
                     supabase
                         .from("project")
                         .select("project_value")
-                        .eq("project_id", 3)
+                        .eq("project_id", 60)
                         .single()
                 ]);
 
