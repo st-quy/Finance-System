@@ -1,7 +1,21 @@
 import { createClient } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
-import { Table, Typography, Card, Button, Space, Modal, message, Input } from "antd";
-import { EyeOutlined, DeleteOutlined, SearchOutlined, PlusOutlined } from "@ant-design/icons";
+import {
+  Table,
+  Typography,
+  Card,
+  Button,
+  Space,
+  Modal,
+  message,
+  Input,
+} from "antd";
+import {
+  EyeOutlined,
+  DeleteOutlined,
+  SearchOutlined,
+  PlusOutlined,
+} from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 
 const ProjectList = () => {
@@ -13,6 +27,10 @@ const ProjectList = () => {
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpbHNsanV5bnBhb2dycnhxb2xmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYyMTc0MDAsImV4cCI6MjA1MTc5MzQwMH0.4hvawiI87VmdXSXYlxKnYp7nkn7emE4rn6Y3hWTE4LU";
   const supabase = createClient(supabaseUrl, supabaseKey);
 
+  const handleViewProject = (projectId) => {
+    navigate(`/projectsDetail/${projectId}`);
+  };
+
   useEffect(() => {
     fetchProjects();
   }, []);
@@ -20,7 +38,9 @@ const ProjectList = () => {
   const fetchProjects = async (query = "") => {
     let { data: projects, error } = await supabase
       .from("project")
-      .select("project_id, project_name, project_value, project_type, start_date, end_date")
+      .select(
+        "project_id, project_name, project_value, project_type, start_date, end_date"
+      )
       .order("project_id", { ascending: true });
 
     if (query) {
@@ -102,20 +122,38 @@ const ProjectList = () => {
       key: "action",
       render: (_, record) => (
         <Space>
-          <Button onClick={() => navigate(`/projects/view/${record.project_id}`)} icon={<EyeOutlined />}></Button>
+          <Button
+            onClick={() => navigate(`/projects/view/${record.project_id}`)}
+            icon={<EyeOutlined />}
+          ></Button>
           <Button
             icon={<DeleteOutlined />}
             danger
             onClick={() => handleDelete(record.project_id)}
           />
-          <Button onClick={() => navigate(`/projects/edit/${record.project_id}`)}>Edit</Button>
+          <Button
+            onClick={() => navigate(`/projects/edit/${record.project_id}`)}
+          >
+            Edit
+          </Button>
+          <Button
+            icon={<EyeOutlined />}
+            onClick={() => handleViewProject(record.project_id)}
+          />
+          <Button icon={<DeleteOutlined />} danger />
         </Space>
       ),
     },
   ];
 
   return (
-    <div style={{ padding: "20px", backgroundColor: "#f5f5f5", minHeight: "100vh" }}>
+    <div
+      style={{
+        padding: "20px",
+        backgroundColor: "#f5f5f5",
+        minHeight: "100vh",
+      }}
+    >
       <div
         style={{
           display: "flex",
@@ -127,7 +165,9 @@ const ProjectList = () => {
         <Typography.Title level={3} style={{ margin: 0 }}>
           Recent Projects
         </Typography.Title>
-        <Space style={{ marginTop: "10px", width: "100%", justifyContent: "center" }}>
+        <Space
+          style={{ marginTop: "10px", width: "100%", justifyContent: "center" }}
+        >
           <Input.Group compact style={{ display: "flex", width: "420px" }}>
             <Input
               placeholder="Search by project name"

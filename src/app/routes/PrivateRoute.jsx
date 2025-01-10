@@ -5,6 +5,7 @@ import { ProtectedRoute } from "./ProtectedRoute/ProtectedRoute.jsx";
 import Overview from "@pages/Overview/Overview.jsx";
 import ProjectEdit from "@pages/Project/Edit/ProjectEdit.jsx";
 import ProjectDetails from "@pages/ProjectDetail/ProjectDetail.jsx";
+import ProjectDetail from "@pages/ProjectDetail/ProjectDetail.jsx";
 
 const PrivateRoute = [
   {
@@ -30,11 +31,11 @@ const PrivateRoute = [
             path: "edit/:projectId",
             element: <ProjectEdit />,
           },
+          {
+            path: "detail/:projectId",
+            element: <ProjectDetail />,
+          },
         ],
-      },
-      {
-        path: "projectsDetail",
-        element: <ProjectDetails />,
       },
     ],
   },
