@@ -1,36 +1,95 @@
 import { createClient } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
-import { Table, Typography, Card, Button, Space, Tag } from "antd";
-import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
-import { useNavigate } from 'react-router-dom';
-
+import {
+  Table,
+  Typography,
+  Card,
+  Button,
+  Space,
+  Modal,
+  message,
+  Input,
+} from "antd";
+import {
+  EyeOutlined,
+  DeleteOutlined,
+  SearchOutlined,
+  PlusOutlined,
+} from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
 
 const ProjectList = () => {
-  const [projects, setProjects] = useState([]); 
+  const navigate = useNavigate();
+  const [projects, setProjects] = useState([]);
+  const [searchQuery, setSearchQuery] = useState(""); // 검색어 상태 추가
   const supabaseUrl = "https://dilsljuynpaogrrxqolf.supabase.co";
   const supabaseKey =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpbHNsanV5bnBhb2dycnhxb2xmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYyMTc0MDAsImV4cCI6MjA1MTc5MzQwMH0.4hvawiI87VmdXSXYlxKnYp7nkn7emE4rn6Y3hWTE4LU";
   const supabase = createClient(supabaseUrl, supabaseKey);
-  const navigate = useNavigate();
 
   const handleViewProject = (projectId) => {
     navigate(`/projectsDetail/${projectId}`);
   };
 
   useEffect(() => {
-    async function fetchProjects() {
-      let { data: projects, error } = await supabase.from("project").select("*");
-      if (error) {
-        console.error("Error fetching projects:", error);
-      } else {
-        setProjects(projects);
-      }
-    }
-
     fetchProjects();
   }, []);
 
+  const fetchProjects = async (query = "") => {
+    let { data: projects, error } = await supabase
+      .from("project")
+      .select(
+        "project_id, project_name, project_value, project_type, start_date, end_date"
+      )
+      .order("project_id", { ascending: true });
+
+    if (query) {
+      // 검색어가 있을 경우 필터링
+      projects = projects.filter((project) =>
+        project.project_name.toLowerCase().includes(query.toLowerCase())
+      );
+    }
+
+    if (error) {
+      console.error("Error fetching projects:", error);
+    } else {
+      setProjects(projects);
+    }
+  };
+
+  const handleSearch = () => {
+    fetchProjects(searchQuery); // 검색어로 프로젝트 가져오기
+  };
+
+  const handleDelete = async (projectId) => {
+    Modal.confirm({
+      title: "Are you sure?",
+      content: "This action will permanently delete the project.",
+      okText: "Yes, delete it",
+      cancelText: "Cancel",
+      onOk: async () => {
+        const { error } = await supabase
+          .from("project")
+          .delete()
+          .eq("project_id", projectId);
+
+        if (error) {
+          message.error("Failed to delete the project.");
+          console.error("Error deleting project:", error);
+        } else {
+          message.success("Project deleted successfully.");
+          fetchProjects();
+        }
+      },
+    });
+  };
+
   const columns = [
+    {
+      title: "Project ID",
+      dataIndex: "project_id",
+      key: "project_id",
+    },
     {
       title: "Project Name",
       dataIndex: "project_name",
@@ -50,21 +109,37 @@ const ProjectList = () => {
       title: "End Date",
       dataIndex: "end_date",
       key: "end_date",
-      render: (text) => (text ? text : "In Progress"), 
+      render: (text) => (text ? text : "In Progress"),
     },
     {
-      title: "User ID",
-      dataIndex: "user_id",
-      key: "user_id",
+      title: "Value",
+      dataIndex: "project_value",
+      key: "project_value",
+      render: (value) => (value ? `$${value.toLocaleString()}` : "N/A"),
     },
     {
       title: "Action",
       key: "action",
       render: (_, record) => (
         <Space>
-          <Button 
-          icon={<EyeOutlined />} 
-          onClick={() => handleViewProject(record.project_id)}/>
+          <Button
+            onClick={() => navigate(`/projects/view/${record.project_id}`)}
+            icon={<EyeOutlined />}
+          ></Button>
+          <Button
+            icon={<DeleteOutlined />}
+            danger
+            onClick={() => handleDelete(record.project_id)}
+          />
+          <Button
+            onClick={() => navigate(`/projects/edit/${record.project_id}`)}
+          >
+            Edit
+          </Button>
+          <Button
+            icon={<EyeOutlined />}
+            onClick={() => handleViewProject(record.project_id)}
+          />
           <Button icon={<DeleteOutlined />} danger />
         </Space>
       ),
@@ -72,20 +147,67 @@ const ProjectList = () => {
   ];
 
   return (
-    <div style={{ padding: "20px", backgroundColor: "#f5f5f5", minHeight: "100vh" }}>
-      {/* 상단 컨트롤 */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+    <div
+      style={{
+        padding: "20px",
+        backgroundColor: "#f5f5f5",
+        minHeight: "100vh",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          marginBottom: "20px",
+        }}
+      >
         <Typography.Title level={3} style={{ margin: 0 }}>
           Recent Projects
         </Typography.Title>
-        <Space>
-          <Button>Select Date</Button>
-          <Button>Filters</Button>
-          <Button>Edit</Button>
+        <Space
+          style={{ marginTop: "10px", width: "100%", justifyContent: "center" }}
+        >
+          <Input.Group compact style={{ display: "flex", width: "420px" }}>
+            <Input
+              placeholder="Search by project name"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ flex: 1 }}
+            />
+            <Button
+              type="primary"
+              icon={<SearchOutlined />}
+              onClick={handleSearch}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              Search
+            </Button>
+          </Input.Group>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => navigate("/projects/create")}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "150px",
+              backgroundColor: "white",
+              color: "black",
+              border: "1px solid #d9d9d9",
+            }}
+          >
+            Create Project
+          </Button>
+          <Button style={{ float: "right" }}>Filters</Button>
         </Space>
       </div>
 
-      {/* 프로젝트 테이블 */}
       <Card
         bordered
         style={{
