@@ -93,12 +93,17 @@ const ProjectFilter = ({ onFilterChange }) => {
 
                 {/* Right side - Buttons */}
                 <div className="flex items-center space-x-2">
-                        <Button type="primary" shape="circle" icon={<PlusOutlined />} />
-                    
+                    <Button type="primary" shape="circle" icon={<PlusOutlined />} />
+
 
                     <DatePicker.RangePicker className="flex gap-2 justify-center items-center h-10 px-3 bg-white rounded-xl border border-solid border-zinc-200"
                         onChange={(date, datestring) => {
                             console.log(date, 'date');
+                            setDateRange({ start: date[0], end: date[1] });
+                            onFilterChange({
+                                dateRange: { start: date[0], end: date[1] },
+                                categories: selectedCategories
+                            });
 
                         }} />
 
