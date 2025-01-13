@@ -1,9 +1,10 @@
-import { Layout, Menu } from "antd";
+import { Layout, Menu, Affix, Button, Input, Skeleton } from "antd";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import {
   HomeOutlined,
   ClusterOutlined,
   LogoutOutlined,
+  OpenAIOutlined,
 } from "@ant-design/icons";
 import { useSelector, useDispatch } from "react-redux";
 import { useEffect, useState } from "react";
@@ -107,12 +108,13 @@ export const ProtectedRoute = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
-  const getActiveKey = (path) => {
-    const segments = path.split("/")[1];
-    return segments;
-  };
+  const getActiveKey = (path) => path.split("/")[1];
 
   const [activeKey, setActiveKey] = useState(getActiveKey(pathname));
+  const [chatbotVisible, setChatbotVisible] = useState(false);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [userInput, setUserInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false); // Track loading state
 
   const changeTab = (key) => {
     setActiveKey(key);
@@ -318,45 +320,86 @@ export const ProtectedRoute = () => {
           theme="dark"
           mode="vertical"
           selectedKeys={[activeKey]}
-          className="!bg-transparent border-none [&_.ant-menu-item-selected]:!bg-[#F5F7F9] [&_.ant-menu-item]:!text-[#121212]"
           onClick={({ key }) => changeTab(key)}
+          className="!bg-transparent border-none [&_.ant-menu-item-selected]:!bg-[#F5F7F9] [&_.ant-menu-item]:!text-[#121212]"
           items={[
-            {
-              key: "overview",
-              icon: <HomeOutlined className="!text-lg pr-2" />,
-              label: "Overview",
-            },
-            {
-              key: "projects",
-              icon: <ClusterOutlined className="!text-lg pr-2" />,
-              label: "Project",
-            },
-            // {
-            //   key: "prediction",
-            //   icon: <CodeSandboxOutlined className="!text-lg pr-2" />,
-            //   label: "Predictions",
-            // },
-            // {
-            //   key: "finance",
-            //   icon: <AppstoreOutlined className="!text-lg pr-2" />,
-            //   label: "Finance",
-            // },
+            { key: "overview", icon: <HomeOutlined />, label: "Overview" },
+            { key: "projects", icon: <ClusterOutlined />, label: "Project" },
           ]}
         />
       </Sider>
       <Layout>
         <Header className="bg-white flex justify-between items-center p-4 shadow-md">
-          {dataUser && <div>Welcome back, {dataUser.name || ""} </div>}
+          {dataUser && <div>Welcome back, {dataUser.name || ""}</div>}
           <LogoutOutlined
-            className="h-full cursor-pointer hover:text-red-500"
+            className="cursor-pointer hover:text-red-500"
             onClick={handleLogout}
           />
         </Header>
         <Content
-          className={`m-4 p-6 overflow-auto  ${activeKey === "overview" ? "bg-none" : "bg-white rounded-xl shadow-xl"}`}
+          className={`m-4 p-6 overflow-auto ${
+            activeKey === "overview"
+              ? "bg-none"
+              : "bg-white rounded-xl shadow-xl"
+          }`}
         >
           <Outlet />
         </Content>
+        <Affix style={{ position: "fixed", bottom: 16, right: 16 }}>
+          <Button
+            type="primary"
+            shape="circle"
+            icon={<OpenAIOutlined />}
+            size="large"
+            onClick={() => setChatbotVisible(!chatbotVisible)}
+          />
+        </Affix>
+        {chatbotVisible && (
+          <div
+            className="fixed bottom-20 right-16 bg-white shadow-lg rounded-lg p-4 flex flex-col"
+            style={{ width: "300px", height: "400px" }}
+          >
+            <h3 className="text-center mb-4">Google AI Chatbot</h3>
+            <div
+              className="overflow-auto flex-1"
+              style={{
+                border: "1px solid #ddd",
+                padding: "10px",
+                marginBottom: "10px",
+              }}
+            >
+              {chatMessages.map((msg, index) => (
+                <div
+                  key={index}
+                  className={`mb-2 ${msg.sender === "user" ? "text-right" : "text-left"}`}
+                >
+                  <span
+                    className={`inline-block p-2 rounded-lg ${
+                      msg.sender === "user"
+                        ? "bg-blue-100 text-blue-800"
+                        : "bg-gray-100 text-gray-800"
+                    }`}
+                  >
+                    {msg.content}
+                  </span>
+                </div>
+              ))}
+              {/* Show skeleton loading if isLoading is true */}
+              {isLoading && (
+                <div className="text-left">
+                  <Skeleton active title={false} paragraph={{ rows: 1 }} />
+                </div>
+              )}
+            </div>
+            <Input.Search
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+              onSearch={handleSendMessage}
+              placeholder="Type a message..."
+              enterButton="Send"
+            />
+          </div>
+        )}
       </Layout>
     </Layout>
   );
