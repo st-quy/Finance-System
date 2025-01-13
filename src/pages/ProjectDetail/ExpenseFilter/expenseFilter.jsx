@@ -2,23 +2,12 @@ import React, { useState } from 'react';
 import { PlusOutlined } from "@ant-design/icons";
 import { DatePicker, Button, Segmented } from "antd";
 import dayjs from 'dayjs';
-import './ProjectFilter.css';
 
-const ProjectFilter = ({ onFilterChange }) => {
+const ExpenseFilter = ({ onFilterChange, onAddExpense }) => {
     const [activeTab, setActiveTab] = useState("All Date");
     const [showFilters, setShowFilters] = useState(false);
     const [dateRange, setDateRange] = useState({ start: null, end: null });
     const [selectedCategories, setSelectedCategories] = useState([]);
-    const [rotate, setRotate] = useState(false);
-
-    const handleMouseEnter = () => {
-        setRotate(true);
-    };
-
-    const handleMouseLeave = () => {
-        setRotate(false);
-    };
-
 
     const tabs = [
         { id: 1, label: "All Date" },
@@ -106,13 +95,7 @@ const ProjectFilter = ({ onFilterChange }) => {
 
                 {/* Right side - Buttons */}
                 <div className="flex items-center space-x-2">
-                    <Button type="primary" shape="circle" icon={<PlusOutlined
-                        onMouseEnter={handleMouseEnter}
-                        onMouseLeave={handleMouseLeave}
-                    />}
-                    />
-
-
+                    <Button type="primary" shape="circle" icon={<PlusOutlined />} onClick={onAddExpense} />
                     <DatePicker.RangePicker className="flex gap-2 justify-center items-center h-10 px-3 bg-white rounded-xl border border-solid border-zinc-200"
                         onChange={(date, datestring) => {
                             console.log(date, 'date');
@@ -167,4 +150,4 @@ const ProjectFilter = ({ onFilterChange }) => {
     );
 };
 
-export default ProjectFilter;
+export default ExpenseFilter;
