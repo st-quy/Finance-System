@@ -339,14 +339,7 @@ export const ProtectedRoute = () => {
             onClick={handleLogout}
           />
         </Header>
-        <Content
-          className={`m-4 p-6 overflow-auto ${
-            activeKey === "overview"
-              ? "bg-none"
-              : "bg-white rounded-xl shadow-xl"
-          }`}
-
-        >
+        <Content className={`m-4 p-6 overflow-auto !bg-none`}>
           <Outlet />
         </Content>
         <Affix style={{ position: "fixed", bottom: 16, right: 16 }}>
