@@ -131,7 +131,7 @@ const ProjectList = () => {
       render: (_, record) => (
         <Space>
           <Button
-            onClick={() => navigate(`/projects/view/${record.project_id}`)}
+            onClick={() => navigate(`/projects/detail/${record.project_id}`)}
             icon={<EyeOutlined />}
           ></Button>
           <Button
