@@ -11,7 +11,10 @@ import { useEffect, useState } from "react";
 import logo from "@assets/Images/stunited.png";
 import { logout } from "@app/features/auth/authSlice";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+
 import { createClient } from "@supabase/supabase-js";
+
+
 
 const { Content, Sider, Header } = Layout;
 
@@ -342,6 +345,7 @@ export const ProtectedRoute = () => {
               ? "bg-none"
               : "bg-white rounded-xl shadow-xl"
           }`}
+
         >
           <Outlet />
         </Content>
