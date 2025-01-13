@@ -1,14 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { Space, Button, Pagination, Input, DatePicker, Cascader } from 'antd';
+import { Space, Button, Pagination, Input, DatePicker, Cascader, Modal, message, Table, Radio, Divider } from 'antd';
 import { EditOutlined, SaveOutlined, DeleteOutlined } from "@ant-design/icons";
 import { supabase } from '../../../supabaseClient';
 import ExpenseFilter from '../ExpenseFilter/expenseFilter';
 import dayjs from 'dayjs';
 import ExpenseAdd from '../ExpenseList/Add/ExpenseAdd';
 
+const columns = [
+  { title: 'Expense ID', dataIndex: 'expense_id', key: 'expense_id' },
+  { title: 'Category', dataIndex: 'category', key: 'category' },
+  { title: 'Date', dataIndex: 'expense_date', key: 'expense_date' },
+  { title: 'Description', dataIndex: 'description', key: 'description' },
+  { title: 'Amount', dataIndex: 'amount', key: 'amount', render: (amount) => `$${amount}` },
+  {
+    title: 'Action',
+    key: 'action',
+    render: (_, record) => (
+      <Space size="middle">
+        <Button icon={<EditOutlined />} onClick={() => handleEdit(record)} />
+        <Button icon={<DeleteOutlined />} onClick={() => handleDelete(record.expense_id)} danger />
+      </Space>
+    ),
+  },
+];
+
 const ListItem = ({ item, isSelected, onSelect, onDelete, onUpdate }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedItem, setEditedItem] = useState({ ...item });
+
 
   const handleInputChange = (field, value) => {
     setEditedItem((prev) => ({ ...prev, [field]: value }));
@@ -47,7 +66,7 @@ const ListItem = ({ item, isSelected, onSelect, onDelete, onUpdate }) => {
       <div className="flex-none w-32 p-4">{item.expense_id}</div>
       <div className="flex-1 p-4">
         {isEditing ? (
-          <Cascader 
+          <Cascader
             options={[
               { value: 'Operations', label: 'Operations' },
               { value: 'Marketing', label: 'Marketing' },
@@ -104,10 +123,35 @@ const ListItem = ({ item, isSelected, onSelect, onDelete, onUpdate }) => {
             <Button icon={<EditOutlined />} onClick={() => setIsEditing(true)} />
           )}
           <Button
-            icon={<DeleteOutlined />}
-            danger
-            onClick={() => onDelete(item.expense_id)}
-          />
+            icon={<DeleteOutlined onClick={
+              async (expenseId) => {
+                Modal.confirm({
+                  title: 'Are you sure?',
+                  content: 'This action will permanently delete the expense.',
+                  okText: 'Yes, delete it',
+                  cancelText: 'Cancel',
+                  onOk: async () => {
+                    try {
+                      let { error } = await supabase
+                        .from("expense")
+                        .delete()
+                        .eq("expense_id", item.expense_id);
+
+                      if (error) {
+                        message.error('Failed to delete the expense.');
+                        console.error('Error deleting expense:', error);
+                      } else {
+                        onDelete();
+                        message.success('Expense deleted successfully.');
+                      }
+                    } catch (error) {
+                      console.error('Error in handleDelete:', error);
+                    }
+                  },
+                });
+
+              }} />}
+            danger />
         </Space>
       </div>
     </div>
@@ -137,6 +181,7 @@ const ListView = ({ projectId }) => {
   const [selectedItems, setSelectedItems] = useState(new Set());
   const [currentPage, setCurrentPage] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
+  const [selectAll, setSelectAll] = useState(false);
   const itemsPerPage = 10;
 
   const handlePageChange = (page) => {
@@ -187,6 +232,16 @@ const ListView = ({ projectId }) => {
     setFilteredExpenses(filtered);
   };
 
+  const handleSelectAll = () => {
+    if (selectAll) {
+      setSelectedItems(new Set());
+    } else {
+      const allIds = filteredExpenses.map(expense => expense.expense_id);
+      setSelectedItems(new Set(allIds));
+    }
+    setSelectAll(!selectAll);
+  };
+
   const handleItemSelect = (id) => {
     const newSelected = new Set(selectedItems);
     if (newSelected.has(id)) {
@@ -195,15 +250,26 @@ const ListView = ({ projectId }) => {
       newSelected.add(id);
     }
     setSelectedItems(newSelected);
+    setSelectAll(newSelected.size === filteredExpenses.length);
   };
 
   return (
-    <div className="space-y-4">
+    <div className="w-full flex flex-col space-y-4">
       <ExpenseFilter onFilterChange={handleFilterChange} onAddExpense={() => setIsAdding(true)} />
 
       <div className="w-full overflow-x-auto rounded-lg border border-zinc-200 shadow-lg">
         <div className="min-w-[1024px]">
           <TableHeader />
+          <div className="flex w-full bg-white border-b border-zinc-200 text-sm font-medium text-slate-500">
+            <div className="flex items-center p-4 w-14">
+              <input
+                type="checkbox"
+                checked={selectAll}
+                onChange={handleSelectAll}
+                className="w-5 h-5 rounded-md border-2 border-neutral-300"
+              />
+            </div>
+          </div>
           {isAdding && (
             <ExpenseAdd
               projectId={projectId}
