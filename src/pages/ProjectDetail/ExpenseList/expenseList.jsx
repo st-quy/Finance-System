@@ -1,28 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Space, Button, Pagination, Input, DatePicker, Cascader, Modal, message, Table, Radio, Divider } from 'antd';
+import { Space, Button, Pagination, Input, DatePicker, Cascader, Modal, message } from 'antd';
 import { EditOutlined, SaveOutlined, DeleteOutlined } from "@ant-design/icons";
 import { supabase } from '../../../supabaseClient';
 import ExpenseFilter from '../ExpenseFilter/expenseFilter';
 import dayjs from 'dayjs';
 import ExpenseAdd from '../ExpenseList/Add/ExpenseAdd';
-
-const columns = [
-  { title: 'Expense ID', dataIndex: 'expense_id', key: 'expense_id' },
-  { title: 'Category', dataIndex: 'category', key: 'category' },
-  { title: 'Date', dataIndex: 'expense_date', key: 'expense_date' },
-  { title: 'Description', dataIndex: 'description', key: 'description' },
-  { title: 'Amount', dataIndex: 'amount', key: 'amount', render: (amount) => `$${amount}` },
-  {
-    title: 'Action',
-    key: 'action',
-    render: (_, record) => (
-      <Space size="middle">
-        <Button icon={<EditOutlined />} onClick={() => handleEdit(record)} />
-        <Button icon={<DeleteOutlined />} onClick={() => handleDelete(record.expense_id)} danger />
-      </Space>
-    ),
-  },
-];
 
 const ListItem = ({ item, isSelected, onSelect, onDelete, onUpdate }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -158,22 +140,6 @@ const ListItem = ({ item, isSelected, onSelect, onDelete, onUpdate }) => {
   );
 };
 
-const TableHeader = () => (
-  <div className="flex w-full bg-white border-b border-zinc-200 text-sm font-medium text-slate-500">
-    <div className="flex items-center p-4 w-14">
-      <input
-        type="checkbox"
-        className="w-5 h-5 rounded-md border-2 border-neutral-300"
-      />
-    </div>
-    <div className="flex-none w-32 p-4">Expense ID</div>
-    <div className="flex-1 p-4">Category</div>
-    <div className="flex-none w-32 p-4">Date</div>
-    <div className="flex-1 p-4">Description</div>
-    <div className="flex-none w-32 p-4">Amount</div>
-    <div className="flex-none w-32 p-4">Action</div>
-  </div>
-);
 
 const ListView = ({ projectId }) => {
   const [expenses, setExpenses] = useState([]);
@@ -253,13 +219,46 @@ const ListView = ({ projectId }) => {
     setSelectAll(newSelected.size === filteredExpenses.length);
   };
 
+  const handleDeleteSelected = async () => {
+    Modal.confirm({
+      title: 'Are you sure?',
+      content: 'This action will permanently delete the selected expenses.',
+      okText: 'Yes, delete them',
+      cancelText: 'Cancel',
+      onOk: async () => {
+        try {
+          const idsToDelete = Array.from(selectedItems);
+          let { error } = await supabase
+            .from("expense")
+            .delete()
+            .in("expense_id", idsToDelete);
+
+          if (error) {
+            message.error('Failed to delete the selected expenses.');
+            console.error('Error deleting expenses:', error);
+          } else {
+            fetchExpenses();
+            setSelectedItems(new Set());
+            message.success('Selected expenses deleted successfully.');
+          }
+        } catch (error) {
+          console.error('Error in handleDeleteSelected:', error);
+        }
+      },
+    });
+  };
+
   return (
     <div className="w-full flex flex-col space-y-4">
-      <ExpenseFilter onFilterChange={handleFilterChange} onAddExpense={() => setIsAdding(true)} />
+      <ExpenseFilter
+        onFilterChange={handleFilterChange}
+        onAddExpense={() => setIsAdding(true)}
+        onDeleteSelected={handleDeleteSelected}
+        selectedCount={selectedItems.size}
+      />
 
       <div className="w-full overflow-x-auto rounded-lg border border-zinc-200 shadow-lg">
         <div className="min-w-[1024px]">
-          <TableHeader />
           <div className="flex w-full bg-white border-b border-zinc-200 text-sm font-medium text-slate-500">
             <div className="flex items-center p-4 w-14">
               <input
@@ -269,6 +268,12 @@ const ListView = ({ projectId }) => {
                 className="w-5 h-5 rounded-md border-2 border-neutral-300"
               />
             </div>
+            <div className="flex-none w-32 p-4">Expense ID</div>
+            <div className="flex-1 p-4">Category</div>
+            <div className="flex-none w-32 p-4">Date</div>
+            <div className="flex-1 p-4">Description</div>
+            <div className="flex-none w-32 p-4">Amount</div>
+            <div className="flex-none w-32 p-4">Action</div>
           </div>
           {isAdding && (
             <ExpenseAdd
