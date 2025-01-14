@@ -13,8 +13,10 @@ import {
 import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../supabaseClient";
-import RadialBarChart from "./Components/RadialBarChart";
-import IncomeExpensesChart from "./Components/IncomeAndExpensesChart";
+import IncomeExpensesChart from "./Components/BarChart/IncomeAndExpensesChart";
+import OverviewCard from "./Components/OverViewCards/OverviewCard";
+import { PredictionCard } from "./Components/Prediction/PredictionCard";
+
 
 const Overview = () => {
   const [data, setData] = useState(null);
@@ -161,12 +163,17 @@ const Overview = () => {
         minHeight: "100vh",
       }}
     >
-      <Row className="w-full" gutter={[16, 16]}>
-        <Col xs={24} sm={24} md={10} lg={10}>
-          <RadialBarChart />
+      <Row className="w-full mb-4" gutter={[16, 16]}>
+        <OverviewCard/>
+        <Col xs={24} sm={24} md={12} lg={12}>
+          <div style={{ height: '100%' }}>
+            <IncomeExpensesChart />
+          </div>
         </Col>
-        <Col xs={24} sm={24} md={14} lg={14}>
-          <IncomeExpensesChart />
+        <Col xs={24} sm={24} md={12} lg={12}>
+          <div style={{ height: '100%' }}>
+            <PredictionCard />
+          </div>
         </Col>
       </Row>
 
@@ -218,4 +225,5 @@ const Overview = () => {
     </div>
   );
 };
+
 export default Overview;

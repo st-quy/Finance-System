@@ -1,23 +1,70 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import ApexCharts from "apexcharts";
+import { supabase } from "../../../../supabaseClient";
+import dayjs from "dayjs";
+import isBetween from "dayjs/plugin/isBetween";
 
-const IncomeExpensesChart = ( data ) => {
+dayjs.extend(isBetween);
+
+const IncomeExpensesChart = () => {
+  const [chartData, setChartData] = useState({ expenses: [], profits: [] });
+
   useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    const now = dayjs();
+    const startOfLastYear = now.subtract(1, "year").startOf("month").format("YYYY-MM-DD");
+
+    const { data: projects, error: projectError } = await supabase
+      .from("project")
+      .select("project_id, project_value, start_date");
+
+    const { data: expenses, error: expenseError } = await supabase
+      .from("expense")
+      .select("project_id, amount, expense_date");
+
+    if (projectError || expenseError) {
+      console.error("Error fetching data:", projectError || expenseError);
+      return;
+    }
+
+    const monthlyData = Array.from({ length: 12 }, (_, i) => {
+      const month = now.subtract(i, "month").startOf("month");
+      const monthLabel = month.format("MMM");
+      const monthStart = month.format("YYYY-MM-DD");
+      const monthEnd = month.endOf("month").format("YYYY-MM-DD");
+
+      const monthlyProjects = projects.filter(project => dayjs(project.start_date).isBetween(monthStart, monthEnd));
+      const monthlyExpenses = expenses.filter(expense => dayjs(expense.expense_date).isBetween(monthStart, monthEnd));
+
+      const monthlyProjectValue = monthlyProjects.reduce((sum, project) => sum + project.project_value, 0);
+      const monthlyExpenseValue = monthlyExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+      const monthlyProfit = monthlyProjectValue - monthlyExpenseValue;
+
+      return {
+        monthLabel,
+        expense: monthlyExpenseValue,
+        profit: monthlyProfit,
+      };
+    }).reverse();
+
+    setChartData({
+      expenses: monthlyData.map(data => data.expense),
+      profits: monthlyData.map(data => data.profit),
+    });
+
     const options = {
-      // expense table에서 받아오기
-      colors: ["#1A56DB", "#3ABFF8", "#FACC15"], // Colors for Personal, Technology, Profit
+      colors: ["#351E99", "#00B3A7"], // Colors for Expense, Profit
       series: [
         {
-          name: "Personal",
-          data: [480, 400, 300, 500, 450, 480, 520, 490, 530, 550, 600, 450], // Monthly data for Personal
-        },
-        {
-          name: "Technology",
-          data: [280, 300, 320, 340, 360, 280, 260, 300, 320, 340, 380, 290], // Monthly data for Technology
+          name: "Expense",
+          data: monthlyData.map(data => data.expense),
         },
         {
           name: "Profit",
-          data: [200, 250, 220, 180, 200, 230, 210, 190, 220, 250, 270, 200], // Monthly data for Profit
+          data: monthlyData.map(data => data.profit),
         },
       ],
       chart: {
@@ -33,7 +80,7 @@ const IncomeExpensesChart = ( data ) => {
         bar: {
           horizontal: false,
           columnWidth: "50%",
-          borderRadius: 8, // Rounded bar edges
+          borderRadius: 5, // Rounded bar edges
         },
       },
       tooltip: {
@@ -44,20 +91,7 @@ const IncomeExpensesChart = ( data ) => {
         },
       },
       xaxis: {
-        categories: [
-          "Jan",
-          "Feb",
-          "Mar",
-          "Apr",
-          "May",
-          "Jun",
-          "Jul",
-          "Aug",
-          "Sep",
-          "Oct",
-          "Nov",
-          "Dec",
-        ], // Monthly labels
+        categories: monthlyData.map(data => data.monthLabel), // Monthly labels
         labels: {
           style: {
             fontFamily: "Inter, sans-serif",
@@ -155,7 +189,7 @@ const IncomeExpensesChart = ( data ) => {
     return () => {
       chart.destroy(); // Cleanup the chart on component unmount
     };
-  }, []);
+  };
 
   return (
     <div className="bg-white rounded-lg p-6">

@@ -2,6 +2,15 @@ import * as React from "react";
 import { useEffect, useState } from "react";
 import { supabase } from '../../../supabaseClient';
 import dayjs from "dayjs";
+import bg1 from "../../../assets/Images/MessGradient/mess1.png";
+import bg2 from "../../../assets/Images/MessGradient/mess2.png";
+import bg3 from "../../../assets/Images/MessGradient/mess3.png";
+import bg4 from "../../../assets/Images/MessGradient/mess3.png";
+import bg5 from "../../../assets/Images/MessGradient/mess3.png";
+import bg6 from "../../../assets/Images/MessGradient/mess3.png";
+
+const backgrounds = [bg1, bg2, bg3, bg4, bg5, bg6];
+const bg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
 
 const InfoItem = ({ icon, label, value, valueClassName = "" }) => (
   <div className="flex gap-10 justify-between items-center w-full text-sm max-w-[429px] max-md:max-w-full">
@@ -64,7 +73,7 @@ const ProjectSummary = ({ projectId }) => {
   return (
     <div className="rounded-lg flex flex-col p-6 w-full bg-white border-b border-slate-200 max-md:px-5 max-md:max-w-full">
       <div className="px-8 pt-32 pb-8 w-full rounded-2xl max-md:px-5 max-md:pt-24 max-md:max-w-full bg-cover bg-center"
-        style={{ backgroundImage: "url('src/assets/Images/MessGradient/mess1.png')" }}
+        style={{ backgroundImage: `url(${bg})` }}
       >
         <div className="flex gap-5 max-md:flex-col">
           <div className="flex flex-col w-[32%] max-md:ml-0 max-md:w-full">
