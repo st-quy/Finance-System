@@ -219,9 +219,43 @@ const ListView = ({ projectId }) => {
     setSelectAll(newSelected.size === filteredExpenses.length);
   };
 
+  const handleDeleteSelected = async () => {
+    Modal.confirm({
+      title: 'Are you sure?',
+      content: 'This action will permanently delete the selected expenses.',
+      okText: 'Yes, delete them',
+      cancelText: 'Cancel',
+      onOk: async () => {
+        try {
+          const idsToDelete = Array.from(selectedItems);
+          let { error } = await supabase
+            .from("expense")
+            .delete()
+            .in("expense_id", idsToDelete);
+
+          if (error) {
+            message.error('Failed to delete the selected expenses.');
+            console.error('Error deleting expenses:', error);
+          } else {
+            fetchExpenses();
+            setSelectedItems(new Set());
+            message.success('Selected expenses deleted successfully.');
+          }
+        } catch (error) {
+          console.error('Error in handleDeleteSelected:', error);
+        }
+      },
+    });
+  };
+
   return (
     <div className="w-full flex flex-col space-y-4">
-      <ExpenseFilter onFilterChange={handleFilterChange} onAddExpense={() => setIsAdding(true)} />
+      <ExpenseFilter
+        onFilterChange={handleFilterChange}
+        onAddExpense={() => setIsAdding(true)}
+        onDeleteSelected={handleDeleteSelected}
+        selectedCount={selectedItems.size}
+      />
 
       <div className="w-full overflow-x-auto rounded-lg border border-zinc-200 shadow-lg">
         <div className="min-w-[1024px]">

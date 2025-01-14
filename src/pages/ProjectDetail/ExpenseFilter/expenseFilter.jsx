@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { PlusOutlined } from "@ant-design/icons";
-import { DatePicker, Button, Segmented } from "antd";
+import { PlusOutlined, DeleteFilled } from "@ant-design/icons";
+import { DatePicker, Button } from "antd";
 import dayjs from 'dayjs';
 
-const ExpenseFilter = ({ onFilterChange, onAddExpense }) => {
+const ExpenseFilter = ({ onFilterChange, onAddExpense, onDeleteSelected, selectedCount }) => {
     const [activeTab, setActiveTab] = useState("All Date");
     const [showFilters, setShowFilters] = useState(false);
     const [dateRange, setDateRange] = useState({ start: null, end: null });
@@ -96,6 +96,7 @@ const ExpenseFilter = ({ onFilterChange, onAddExpense }) => {
                 {/* Right side - Buttons */}
                 <div className="flex items-center space-x-2">
                     <Button type="primary" shape="circle" icon={<PlusOutlined />} onClick={onAddExpense} />
+                    
                     <DatePicker.RangePicker className="flex gap-2 justify-center items-center h-10 px-3 bg-white rounded-xl border border-solid border-zinc-200"
                         onChange={(date, datestring) => {
                             console.log(date, 'date');
@@ -122,6 +123,12 @@ const ExpenseFilter = ({ onFilterChange, onAddExpense }) => {
                             Filters {selectedCategories.length > 0 && `(${selectedCategories.length})`}
                         </span>
                     </Button>
+
+                    {selectedCount > 0 && (
+                        <Button color="danger" variant="filled" icon={<DeleteFilled />} onClick={onDeleteSelected}>
+                         ({selectedCount})
+                        </Button>
+                    )}
                 </div>
             </div>
 
