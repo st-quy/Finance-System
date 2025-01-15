@@ -4,8 +4,8 @@ import ProjectCreate from "@pages/Project/Create/ProjectCreate.jsx";
 import { ProtectedRoute } from "./ProtectedRoute/ProtectedRoute.jsx";
 import Overview from "@pages/Overview/Overview.jsx";
 import ProjectEdit from "@pages/Project/Edit/ProjectEdit.jsx";
-import ProjectDetails from "@pages/ProjectDetail/ProjectDetail.jsx";
 import ProjectDetail from "@pages/ProjectDetail/ProjectDetail.jsx";
+import Report from "@pages/ProjectDetail/ReportGenerator/report.jsx";
 
 const PrivateRoute = [
   {
@@ -34,6 +34,10 @@ const PrivateRoute = [
           {
             path: "detail/:projectId",
             element: <ProjectDetail />,
+          },
+          {
+            path: "report/:projectId",
+            element: <Report />,
           },
         ],
       },

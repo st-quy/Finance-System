@@ -17,7 +17,6 @@ import IncomeExpensesChart from "./Components/BarChart/IncomeAndExpensesChart";
 import OverviewCard from "./Components/OverViewCards/OverviewCard";
 import { PredictionCard } from "./Components/Prediction/PredictionCard";
 
-
 const Overview = () => {
   const [data, setData] = useState(null);
   const [projects, setProjects] = useState([]);
@@ -164,14 +163,14 @@ const Overview = () => {
       }}
     >
       <Row className="w-full mb-4" gutter={[16, 16]}>
-        <OverviewCard/>
+        <OverviewCard />
         <Col xs={24} sm={24} md={12} lg={12}>
-          <div style={{ height: '100%' }}>
+          <div style={{ height: "100%" }}>
             <IncomeExpensesChart />
           </div>
         </Col>
         <Col xs={24} sm={24} md={12} lg={12}>
-          <div style={{ height: '100%' }}>
+          <div style={{ height: "100%" }}>
             <PredictionCard />
           </div>
         </Col>
@@ -200,11 +199,6 @@ const Overview = () => {
             >
               Recent Projects
             </Typography.Title>
-            <Space>
-              <Button>Select Date</Button>
-              <Button>Filters</Button>
-              <Button>Edit</Button>
-            </Space>
           </div>
 
           <Table
