@@ -15,7 +15,10 @@ const IncomeExpensesChart = () => {
 
   const fetchData = async () => {
     const now = dayjs();
-    const startOfLastYear = now.subtract(1, "year").startOf("month").format("YYYY-MM-DD");
+    const startOfLastYear = now
+      .subtract(1, "year")
+      .startOf("month")
+      .format("YYYY-MM-DD");
 
     const { data: projects, error: projectError } = await supabase
       .from("project")
@@ -36,11 +39,21 @@ const IncomeExpensesChart = () => {
       const monthStart = month.format("YYYY-MM-DD");
       const monthEnd = month.endOf("month").format("YYYY-MM-DD");
 
-      const monthlyProjects = projects.filter(project => dayjs(project.start_date).isBetween(monthStart, monthEnd));
-      const monthlyExpenses = expenses.filter(expense => dayjs(expense.expense_date).isBetween(monthStart, monthEnd));
+      const monthlyProjects = projects.filter((project) =>
+        dayjs(project.start_date).isBetween(monthStart, monthEnd)
+      );
+      const monthlyExpenses = expenses.filter((expense) =>
+        dayjs(expense.expense_date).isBetween(monthStart, monthEnd)
+      );
 
-      const monthlyProjectValue = monthlyProjects.reduce((sum, project) => sum + project.project_value, 0);
-      const monthlyExpenseValue = monthlyExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+      const monthlyProjectValue = monthlyProjects.reduce(
+        (sum, project) => sum + project.project_value,
+        0
+      );
+      const monthlyExpenseValue = monthlyExpenses.reduce(
+        (sum, expense) => sum + expense.amount,
+        0
+      );
       const monthlyProfit = monthlyProjectValue - monthlyExpenseValue;
 
       return {
@@ -51,8 +64,8 @@ const IncomeExpensesChart = () => {
     }).reverse();
 
     setChartData({
-      expenses: monthlyData.map(data => data.expense),
-      profits: monthlyData.map(data => data.profit),
+      expenses: monthlyData.map((data) => data.expense),
+      profits: monthlyData.map((data) => data.profit),
     });
 
     const options = {
@@ -60,11 +73,11 @@ const IncomeExpensesChart = () => {
       series: [
         {
           name: "Expense",
-          data: monthlyData.map(data => data.expense),
+          data: monthlyData.map((data) => data.expense),
         },
         {
           name: "Profit",
-          data: monthlyData.map(data => data.profit),
+          data: monthlyData.map((data) => data.profit),
         },
       ],
       chart: {
@@ -91,7 +104,7 @@ const IncomeExpensesChart = () => {
         },
       },
       xaxis: {
-        categories: monthlyData.map(data => data.monthLabel), // Monthly labels
+        categories: monthlyData.map((data) => data.monthLabel), // Monthly labels
         labels: {
           style: {
             fontFamily: "Inter, sans-serif",

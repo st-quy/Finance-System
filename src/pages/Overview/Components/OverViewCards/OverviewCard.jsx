@@ -153,7 +153,7 @@ const DashboardStats = () => {
         title: "Monthly Profit",
         value: `$${monthlyProfit.toLocaleString()}`,
         icon: <DollarOutlined className="text-lg" />,
-        comparison: `${monthlyProfitComparison}%`,
+        comparison: `${Number(monthlyProfitComparison)?.toFixed(0)}%`,
         comparisonText: "Compare to last month",
         variant: "cyan",
       },
@@ -169,7 +169,7 @@ const DashboardStats = () => {
         title: "Monthly Expense",
         value: `$${monthlyExpense.toLocaleString()}`,
         icon: <WalletOutlined className="text-lg" />,
-        comparison: `${monthlyExpenseComparison}%`,
+        comparison: `${Number(monthlyExpenseComparison).toFixed(0)}%`,
         comparisonText: "Compare to last month",
         variant: "rose",
       },
@@ -204,7 +204,7 @@ const DashboardStats = () => {
   };
 
   const baseCardStyles =
-    "flex overflow-hidden relative flex-col flex-1 shrink bg-white rounded-2xl border border-solid shadow-lg basis-0 border-zinc-200 min-w-[240px] h-full";
+    "flex overflow-hidden relative flex-col flex-1 shrink bg-white rounded-2xl border border-solid shadow-lg basis-0 border-zinc-200 min-w-[240px]";
   const contentStyles = "flex z-0 flex-col px-5 pt-5 pb-4 w-full";
   const headerStyles = "flex gap-4 items-start w-full";
   const titleContainerStyles = "flex flex-col flex-1 shrink basis-4";
@@ -217,11 +217,12 @@ const DashboardStats = () => {
     "flex gap-1 items-center mt-4 w-full text-sm tracking-normal leading-none";
   const comparisonValueStyles =
     "flex gap-0.5 items-center self-stretch my-auto font-bold text-teal-500 whitespace-nowrap";
-  const comparisonTextStyles = "self-stretch my-auto text-slate-500";
+  const comparisonTextStyles =
+    "self-stretch my-auto text-[10px] text-slate-500";
   const borderStyles = "flex absolute left-0 top-5 z-0 w-1.5 h-6 min-h-[24px]";
 
   return (
-    <div className="flex flex-wrap gap-6 items-start">
+    <div className="flex flex-wrap gap-6 items-start w-full">
       {statsData.map((stat, index) => {
         const styles = variantStyles[stat.variant];
         return (
