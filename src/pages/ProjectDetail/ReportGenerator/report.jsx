@@ -1,63 +1,188 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from 'antd';
 import { supabase } from '../../../supabaseClient';
-import { PDFDownloadLink, Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { PDFDownloadLink, Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer';
 import dayjs from 'dayjs';
 import ApexCharts from 'apexcharts';
 import { useParams } from "react-router-dom";
-
+import html2canvas from 'html2canvas';
 
 const styles = StyleSheet.create({
-    page: {
-        padding: 30,
-    },
-    section: {
-        margin: 10,
-        padding: 10,
-        flexGrow: 1,
-    },
-    title: {
-        fontSize: 24,
-        marginBottom: 10,
-    },
-    subtitle: {
-        fontSize: 18,
-        marginBottom: 10,
-    },
-    text: {
-        fontSize: 12,
-        marginBottom: 10,
-    },
-    chart: {
-        marginTop: 20,
-    },
+  page: {
+    padding: 30,
+    fontFamily: 'Helvetica',
+    backgroundColor: '#ffffff',
+  },
+  header: {
+    marginBottom: 24,
+    borderBottom: '1pt solid #e5e7eb',
+    paddingBottom: 24,
+    textAlign: 'center',
+  },
+  title: {
+    fontSize: 24,
+    marginBottom: 8,
+    color: '#1f2937',
+    fontWeight: 'bold',
+  },
+  subtitle: {
+    fontSize: 20,
+    color: '#4b5563',
+    marginBottom: 16,
+  },
+  gridContainer: {
+    flexDirection: 'row',
+    marginBottom: 24,
+    borderBottom: '1pt solid #e5e7eb',
+    paddingBottom: 24,
+  },
+  gridColumn: {
+    flex: 1,
+    paddingHorizontal: 8,
+  },
+  label: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginBottom: 4,
+  },
+  value: {
+    fontSize: 14,
+    color: '#111827',
+    fontWeight: 'bold',
+  },
+  tag: {
+    backgroundColor: '#e0f2fe',
+    color: '#1d4ed8',
+    padding: '4 8',
+    borderRadius: 9999,
+    fontSize: 12,
+    alignSelf: 'flex-start',
+  },
+  chartSection: {
+    marginVertical: 24,
+    borderBottom: '1pt solid #e5e7eb',
+    paddingBottom: 24,
+  },
+  chartTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    color: '#111827',
+  },
+  expenseTable: {
+    width: '100%',
+    marginTop: 16,
+  },
+  tableHeader: {
+    backgroundColor: '#f9fafb',
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+    paddingVertical: 12,
+  },
+  tableHeaderCell: {
+    color: '#6b7280',
+    fontSize: 12,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+  },
+  tableRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+    paddingVertical: 12,
+  },
+  tableCell: {
+    fontSize: 12,
+    color: '#374151',
+  },
+  dateColumn: { flex: 2 },
+  descriptionColumn: { flex: 3 },
+  amountColumn: { flex: 1, textAlign: 'right' },
+  footer: {
+    position: 'absolute',
+    bottom: 30,
+    left: 0,
+    right: 0,
+    textAlign: 'center',
+    color: '#6b7280',
+    fontSize: 10,
+    borderTop: '1pt solid #e5e7eb',
+    paddingTop: 16,
+  },
 });
 
-const ReportDocument = ({ project, expenses, budgetData, totalBudget }) => (
-    <Document>
-        <Page style={styles.page}>
-            <View style={styles.section}>
-                <Text style={styles.title}>{project.project_name}</Text>
-                <Text style={styles.subtitle}>{project.client_name}</Text>
-                <Text style={styles.text}>Created at: {project.start_date}</Text>
-                <Text style={styles.text}>End date: {project.end_date || 'In Processing'}</Text>
-                <Text style={styles.text}>Tags: {project.project_type}</Text>
-                <Text style={styles.text}>Number of people working on: 5</Text>
-                <Text style={styles.text}>Value: ${project.project_value}</Text>
-                <Text style={styles.text}>Target Profit: ${project.project_value - totalBudget}</Text>
-                <View style={styles.chart} id="budget-chart"></View>
-                <Text style={styles.subtitle}>Expenses</Text>
-                <View>
-                    {expenses.map(expense => (
-                        <Text key={expense.expense_id} style={styles.text}>
-                            {expense.expense_date}: {expense.description} - ${expense.amount}
-                        </Text>
-                    ))}
-                </View>
-                <Text style={styles.text}>This report was generated on {dayjs().format('YYYY-MM-DD HH:mm')}</Text>
+const ReportDocument = ({ project, expenses, budgetData, totalBudget, chartImage }) => (
+  <Document>
+    <Page size="A4" style={styles.page}>
+      <View style={styles.header}>
+        <Text style={styles.title}>{project.project_name}</Text>
+        <Text style={styles.subtitle}>Project Report</Text>
+      </View>
+
+      <View style={styles.gridContainer}>
+        <View style={styles.gridColumn}>
+          <View style={{ marginBottom: 12 }}>
+            <Text style={styles.label}>Created at</Text>
+            <Text style={styles.value}>{project.start_date}</Text>
+          </View>
+          <View style={{ marginBottom: 12 }}>
+            <Text style={styles.label}>End date</Text>
+            <Text style={styles.value}>{project.end_date || 'In Processing'}</Text>
+          </View>
+          <View style={{ marginBottom: 12 }}>
+            <Text style={styles.label}>Project Type</Text>
+            <Text style={styles.tag}>{project.project_type}</Text>
+          </View>
+        </View>
+        <View style={styles.gridColumn}>
+          <View style={{ marginBottom: 12 }}>
+            <Text style={styles.label}>Number of people</Text>
+            <Text style={styles.value}>5</Text>
+          </View>
+          <View style={{ marginBottom: 12 }}>
+            <Text style={styles.label}>Value</Text>
+            <Text style={[styles.value, { color: '#059669' }]}>${project.project_value?.toLocaleString()}</Text>
+          </View>
+          <View style={{ marginBottom: 12 }}>
+            <Text style={styles.label}>Target Profit</Text>
+            <Text style={[styles.value, { color: '#059669' }]}>${(project.project_value - totalBudget)?.toLocaleString()}</Text>
+          </View>
+        </View>
+      </View>
+
+      {chartImage && (
+        <View style={styles.chartSection}>
+          <Text style={styles.chartTitle}>Budget Distribution</Text>
+          <Image src={chartImage} style={{ width: '100%', height: 300 }} />
+        </View>
+      )}
+
+      <View style={{ marginTop: 24 }}>
+        <Text style={styles.chartTitle}>Expenses</Text>
+        <View style={styles.expenseTable}>
+          <View style={styles.tableHeader}>
+            <Text style={[styles.tableHeaderCell, { flex: 1.5 }]}>Date</Text>
+            <Text style={[styles.tableHeaderCell, { flex: 2 }]}>Description</Text>
+            <Text style={[styles.tableHeaderCell, { flex: 1.5 }]}>Category</Text>
+            <Text style={[styles.tableHeaderCell, { flex: 1, textAlign: 'right' }]}>Amount</Text>
+          </View>
+          {expenses.map((expense, index) => (
+            <View key={index} style={[styles.tableRow, { backgroundColor: index % 2 === 0 ? '#ffffff' : '#f9fafb' }]}>
+              <Text style={[styles.tableCell, { flex: 1.5 }]}>{expense.expense_date}</Text>
+              <Text style={[styles.tableCell, { flex: 2 }]}>{expense.description}</Text>
+              <Text style={[styles.tableCell, { flex: 1.5 }]}>{expense.category}</Text>
+              <Text style={[styles.tableCell, { flex: 1, textAlign: 'right' }]}>${expense.amount.toLocaleString()}</Text>
             </View>
-        </Page>
-    </Document>
+          ))}
+        </View>
+      </View>
+
+      <Text style={styles.footer}>
+        Generated on {dayjs().format('YYYY-MM-DD HH:mm')}
+      </Text>
+    </Page>
+  </Document>
 );
 
 const Report = () => {
@@ -66,7 +191,7 @@ const Report = () => {
     const [expenses, setExpenses] = useState([]);
     const [budgetData, setBudgetData] = useState([]);
     const [totalBudget, setTotalBudget] = useState(0);
-
+    const [chartImage, setChartImage] = useState(null);
 
     useEffect(() => {
         fetchData();
@@ -163,37 +288,81 @@ const Report = () => {
 
         const chart = new ApexCharts(document.querySelector("#budget-chart"), chartOptions);
         chart.render();
+
+        // Wait for chart to render then capture it as an image
+        setTimeout(async () => {
+            const chartElement = document.querySelector("#budget-chart");
+            if (chartElement) {
+                const canvas = await html2canvas(chartElement);
+                const chartImageUrl = canvas.toDataURL('image/png');
+                setChartImage(chartImageUrl);
+            }
+        }, 1000);
     };
 
     return (
-        <div>
+        <div className="max-w-4xl mx-auto">
             <PDFDownloadLink
-                document={<ReportDocument project={project} expenses={expenses} budgetData={budgetData} totalBudget={totalBudget} />}
+                document={<ReportDocument project={project} expenses={expenses} budgetData={budgetData} totalBudget={totalBudget} chartImage={chartImage} />}
                 fileName={`report_${project.project_name}.pdf`}
             >
-                {({ loading }) => (loading ? 'Loading document...' : <Button>Generate PDF</Button>)}
+                {({ loading }) => (loading ? 'Loading document...' : <Button className="mb-6">Generate PDF</Button>)}
             </PDFDownloadLink>
-            <div id="report-content">
+            <div id="report-content" className="bg-white shadow-lg rounded-lg p-8">
                 {project && (
-                    <div>
-                        <h1>{project.project_name}</h1>
-                        <h2>{project.client_name}</h2>
-                        <p>Created at: {project.start_date}</p>
-                        <p>End date: {project.end_date || 'In Processing'}</p>
-                        <p>Tags: {project.project_type}</p>
-                        <p>Number of people working on: 5</p>
-                        <p>Value: ${project.project_value}</p>
-                        <p>Target Profit: ${project.project_value - totalBudget}</p>
-                        <div id="budget-chart"></div>
-                        <h3>Expenses</h3>
-                        <ul>
-                            {expenses.map(expense => (
-                                <li key={expense.expense_id}>
-                                    {expense.expense_date}: {expense.description} - ${expense.amount}
-                                </li>
-                            ))}
-                        </ul>
-                        <p>This report was generated on {dayjs().format('YYYY-MM-DD HH:mm')}</p>
+                    <div className="space-y-6">
+                        <div className="text-center border-b pb-6">
+                            <h1 className="text-3xl font-bold text-gray-800 mb-2">{project.project_name}</h1>
+                            <h2 className="text-xl text-gray-600">{project.client_name}</h2>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4 border-b pb-6">
+                            <div className="space-y-2">
+                                <p className="text-sm text-gray-600">Created at: <span className="font-semibold text-gray-800">{project.start_date}</span></p>
+                                <p className="text-sm text-gray-600">End date: <span className="font-semibold text-gray-800">{project.end_date || 'In Processing'}</span></p>
+                                <p className="text-sm text-gray-600">Tags: <span className="inline-block bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">{project.project_type}</span></p>
+                            </div>
+                            <div className="space-y-2">
+                                <p className="text-sm text-gray-600">Number of people: <span className="font-semibold text-gray-800">5</span></p>
+                                <p className="text-sm text-gray-600">Value: <span className="font-semibold text-green-600">${project.project_value?.toLocaleString()}</span></p>
+                                <p className="text-sm text-gray-600">Target Profit: <span className="font-semibold text-green-600">${(project.project_value - totalBudget)?.toLocaleString()}</span></p>
+                            </div>
+                        </div>
+
+                        <div className="border-b pb-6">
+                            <h3 className="text-xl font-semibold mb-4">Budget Distribution</h3>
+                            <div id="budget-chart" className="w-full h-[350px]"></div>
+                        </div>
+
+                        <div>
+                            <h3 className="text-xl font-semibold mb-4">Expenses</h3>
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full divide-y divide-gray-200">
+                                    <thead className="bg-gray-50">
+                                        <tr>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="bg-white divide-y divide-gray-200">
+                                        {expenses.map(expense => (
+                                            <tr key={expense.expense_id} className="hover:bg-gray-50">
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{expense.expense_date}</td>
+                                                <td className="px-6 py-4 text-sm text-gray-900">{expense.description}</td>
+                                                <td className="px-6 py-4 text-sm text-gray-900">{expense.category}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">${expense.amount.toLocaleString()}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div className="text-center text-sm text-gray-500 pt-6 border-t">
+                            This report was generated on {dayjs().format('YYYY-MM-DD HH:mm')}
+                        </div>
                     </div>
                 )}
             </div>
