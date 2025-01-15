@@ -19,8 +19,9 @@ import { createClient } from "@supabase/supabase-js";
 const { Content, Sider, Header } = Layout;
 
 // Initialize Google Generative AI client
-const genAI = new GoogleGenerativeAI("AIzaSyChF_XTD-wbh3VSQjGwqK7a9tLZWD7x7SA");
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const genAI = new GoogleGenerativeAI("AIzaSyAkT139KfdEYt7_vB55ecSDUlVlNS6Tyxo");
+const sqlModel = genAI.getGenerativeModel({ model: "tunedModels/chatbotprompt-lt2p15q1s20p" });
+const nlpModel = genAI.getGenerativeModel({ model: "tunedModels/naturallanguageprompt-12kpz8gmrbb0" });
 
 
 // Initialize Supabase client
@@ -30,76 +31,75 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Database Schema for AI
 const databaseSchema = `
--- ENUM Types
-CREATE TYPE user_role AS ENUM ('Project Manager', 'Finance Staff', 'Management');
-CREATE TYPE expense_category AS ENUM ('Personnel', 'Technology', 'Marketing', 'Operations');
-CREATE TYPE alert_type AS ENUM ('Budget Overrun', 'Payment Reminder');
-
--- User Table
-CREATE TABLE "User" (
-  user_id SERIAL PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
-  role user_role NOT NULL,
-  email VARCHAR(100) UNIQUE NOT NULL
-);
-
--- Project Table
-CREATE TABLE Project (
-  project_id SERIAL PRIMARY KEY,
-  project_name VARCHAR(200) NOT NULL,
-  project_type VARCHAR(100) NOT NULL,
-  project_value INT8 NOT NULL,
-  start_date DATE NOT NULL,
-  end_date DATE,
-  user_id INT NOT NULL,
-  FOREIGN KEY (user_id) REFERENCES "User" (user_id) ON DELETE CASCADE
-);
-
--- Budget Table
-CREATE TABLE Budget (
-  budget_id SERIAL PRIMARY KEY,
-  project_id INT NOT NULL,
-  total_budget DECIMAL(18, 2) NOT NULL,
-  allocated_to_personnel DECIMAL(18, 2),
-  allocated_to_technology DECIMAL(18, 2),
-  allocated_to_operations DECIMAL(18, 2),
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (project_id) REFERENCES Project (project_id) ON DELETE CASCADE
-);
-
--- Expense Table
-CREATE TABLE Expense (
-  expense_id SERIAL PRIMARY KEY,
-  project_id INT NOT NULL,
-  expense_date DATE NOT NULL,
-  category expense_category NOT NULL,
-  amount DECIMAL(18, 2) NOT NULL,
-  description TEXT,
-  FOREIGN KEY (project_id) REFERENCES Project (project_id) ON DELETE CASCADE
-);
-
--- Report Table
-CREATE TABLE Report (
-  report_id SERIAL PRIMARY KEY,
-  project_id INT NOT NULL,
-  generated_date DATE NOT NULL,
-  total_revenue DECIMAL(18, 2),
-  total_expenses DECIMAL(18, 2),
-  net_profit DECIMAL(18, 2),
-  FOREIGN KEY (project_id) REFERENCES Project (project_id) ON DELETE CASCADE
-);
-
--- Alert Table
-CREATE TABLE Alert (
-  alert_id SERIAL PRIMARY KEY,
-  project_id INT NOT NULL,
-  user_id INT,
-  alert_type alert_type NOT NULL,
-  message TEXT NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (project_id) REFERENCES Project (project_id) ON DELETE CASCADE,
-  FOREIGN KEY (user_id) REFERENCES "User" (user_id) ON DELETE SET NULL
-);
+1. ENUM Types:
+user_role: Represents the role of a user.
+Values: 'Project Manager', 'Finance Staff', 'Management'.
+expense_category: Categorizes expenses.
+Values: 'Personnel', 'Technology', 'Marketing', 'Operations'.
+alert_type: Defines types of alerts.
+Values: 'Budget Overrun', 'Payment Reminder'.
+2. Tables:
+a. User:
+Primary Key: user_id (auto-incremented).
+Fields:
+name: User's full name.
+role: User role (user_role ENUM).
+email: Unique email for login/notifications.
+b. Project:
+Primary Key: project_id (auto-incremented).
+Fields:
+project_name: Name of the project.
+project_value: Monetary value of the project.
+project_type: Category of the project.
+start_date: Project start date.
+end_date: (Optional) Project end date.
+user_id: References the managing user (User table).
+Foreign Key:
+user_id: Cascades on delete.
+c. Budget:
+Primary Key: budget_id (auto-incremented).
+Fields:
+project_id: References the associated project.
+total_budget: Total allocated budget.
+Allocations: allocated_to_personnel, allocated_to_technology, allocated_to_operations.
+updated_at: Last updated timestamp.
+Foreign Key:
+project_id: Cascades on delete.
+d. Expense:
+Primary Key: expense_id (auto-incremented).
+Fields:
+project_id: References the associated project.
+expense_date: Date of the expense.
+category: Expense category (expense_category ENUM).
+amount: Expense amount.
+description: (Optional) Expense details.
+Foreign Key:
+project_id: Cascades on delete.
+e. Report:
+Primary Key: report_id (auto-incremented).
+Fields:
+project_id: References the associated project.
+generated_date: Report generation date.
+Financial data: total_revenue, total_expenses, net_profit.
+Foreign Key:
+project_id: Cascades on delete.
+f. Alert:
+Primary Key: alert_id (auto-incremented).
+Fields:
+project_id: References the associated project.
+user_id: (Optional) References the alert recipient (User table).
+alert_type: Type of alert (alert_type ENUM).
+message: Content of the alert.
+created_at: Alert creation timestamp.
+Foreign Keys:
+project_id: Cascades on delete.
+user_id: Sets to NULL on delete.
+Relationships:
+User ↔ Project: A user manages multiple projects.
+Project ↔ Budget: Each project has a budget.
+Project ↔ Expense: Projects have multiple expenses.
+Project ↔ Report: Financial reports are tied to projects.
+Project, User ↔ Alert: Alerts are linked to projects and optionally to users.
 `;
 
 
@@ -153,27 +153,8 @@ export const ProtectedRoute = () => {
       
       Based on the schema above, generate a PostgreSQL query that answers the user's question. The query should return results in the following JSON format:
 
-      Example for: "Please show me the name of the project you are managing and the total cost"
-      SELECT json_agg(
-          json_build_object(
-              'project_name', aggregated.project_name,
-              'total_expense', aggregated.total_expense
-          )) AS result
-      FROM (
-          SELECT 
-              p.project_name, 
-              SUM(e.amount) AS total_expense
-          FROM 
-              Project p
-          JOIN 
-              Expense e ON p.project_id = e.project_id
-          WHERE 
-              p.user_id = (SELECT user_id FROM "User" WHERE email = 'user1@example.com')
-          GROUP BY 
-              p.project_name
-      ) AS aggregated;
-
-      Example for: "Which project has the highest total expenses?"
+      Example for question: "Which project has the highest total expenses?"
+      Expected result:
       SELECT json_agg(
           json_build_object(
               'project_name', p.project_name,
@@ -195,44 +176,54 @@ export const ProtectedRoute = () => {
           LIMIT 1
       ) AS p;
 
-      Note: The email 'user1@example.com' is fixed and should always be used for generating the query.
+      Rules:
+      Remember that your output will be posted directly to the database API so don't add any more characters rather than SQL queries.
+      If the user asks about something unrelated to the database, use your knowledge and NLP to answer the question!
+
+      Note: The email 'user1@example.com' is fixed and you only need to give us information related to this user.
     `;
 
-  
-      const { response } = await model.generateContent(aiPrompt);
+
+      const { response } = await sqlModel.generateContent(aiPrompt);
       let generatedSQL =
         response?.candidates?.[0]?.content?.parts?.[0]?.text || "No response received.";
-  
+
       // Step 1.1: SQL 쿼리에서 Markdown 코드 블록 제거
       generatedSQL = generatedSQL.replace(/```sql|```/g, "").trim();
-  
+
       // Step 1.2: SQL 쿼리에서 "json " 또는 "JSON " 키워드 제거
       const jsonRegex = /^\s*json\s+/i; // "json" 키워드와 공백 허용
       if (jsonRegex.test(generatedSQL)) {
         generatedSQL = generatedSQL.replace(jsonRegex, "").trim();
       }
-  
+
       console.log("Sanitized SQL Query:", generatedSQL);
-  
+
       const botReplySQL = {
         sender: "bot",
         content: `Generated SQL: ${generatedSQL}`,
       };
-    
-  
+
+
       // Step 2: Supabase에서 SQL 쿼리 실행
       const queryResult = await executeSQLQuery(generatedSQL);
-  
-      // Step 3: Supabase 결과와 원래 질문을 Google AI에 다시 전달
-      const refinedMessage = `${message}. Additionally, please remove any references to user email like 'user1@example.com' in the response. This is an example answer. Here is a summary of the project and its total cost:\nThe following projects have been identified with the relevant costs:\n Project 34: $9151.46 \n Project 47: $9583.62 \n Project 30: $11153.02 \n`;
-      const naturalLanguageResult = await generateNaturalLanguageResponse(refinedMessage, queryResult);
-  
-      // Step 4: 결과를 사용자에게 표시 (프로젝트 관리자 정보 제거)
-      const refinedResult = naturalLanguageResult.replace(/, managed by [^,]+, /, ', ');
-      setChatMessages((prevMessages) => [
-        ...prevMessages,
-        { sender: "bot", content: refinedResult },
-      ]);
+
+      if (queryResult.isDirectAnswer) {
+        // If it's a direct answer, just display it
+        setChatMessages((prevMessages) => [
+          ...prevMessages,
+          { sender: "bot", content: queryResult.result },
+        ]);
+      } else {
+        // If it's a SQL result, process it through natural language generation
+        const refinedMessage = `${message}. Additionally, please remove any references to user email like 'user1@example.com' in the response. Don't format the text (Bold, Italic, Underline). This is an example answer. Here is a summary of the project and its total cost: The following projects have been identified with the relevant costs: Project 34: $9151.46, Project 47: $9583.62, Project 30: $11153.02.`;
+        const naturalLanguageResult = await generateNaturalLanguageResponse(refinedMessage, queryResult.result);
+        const refinedResult = naturalLanguageResult.replace(/, managed by [^,]+, /, ', ');
+        setChatMessages((prevMessages) => [
+          ...prevMessages,
+          { sender: "bot", content: refinedResult },
+        ]);
+      }
     } catch (error) {
       console.error("Error processing query:", error);
       setChatMessages((prevMessages) => [
@@ -243,60 +234,56 @@ export const ProtectedRoute = () => {
       setIsLoading(false); // Set loading state to false after response
     }
   };
-  
+
   const executeSQLQuery = async (query) => {
     try {
-      // 세미콜론 제거
       const sanitizedQuery = query.replace(/;/g, '');
       console.log("Executing SQL Query:", sanitizedQuery);
-  
+
       const { data, error } = await supabase.rpc("execute_query", { query: sanitizedQuery });
-  
+
       if (error) {
         console.error("Supabase RPC Error:", error);
-        setChatMessages((prevMessages) => [
-          ...prevMessages,
-          { sender: "bot", content: `Error executing query: ${error.message}` },
-        ]);
-        return [{ error: `Supabase Error: ${error.message}` }];
+        // If SQL query fails, try to get a direct answer from nlpModel
+        const { response } = await nlpModel.generateContent(userInput);
+        const naturalAnswer = response?.candidates?.[0]?.content?.parts?.[0]?.text || "I couldn't understand your question.";
+        return { isDirectAnswer: true, result: naturalAnswer };
       }
-  
+
       if (!data || data.length === 0) {
         console.warn("Query executed but returned no results.");
-        setChatMessages((prevMessages) => [
-          ...prevMessages,
-          { sender: "bot", content: "Query executed successfully but returned no results." },
-        ]);
-        return [{ error: "No results found." }];
+        // If no results found, try to get a direct answer from nlpModel
+        const { response } = await nlpModel.generateContent(userInput);
+        const naturalAnswer = response?.candidates?.[0]?.content?.parts?.[0]?.text || "I couldn't find any relevant information.";
+        return { isDirectAnswer: true, result: naturalAnswer };
       }
-  
+
       console.log("Supabase Query Result:", data);
-      return data;
+      return { isDirectAnswer: false, result: data };
     } catch (err) {
       console.error("Unexpected Error:", err);
-      setChatMessages((prevMessages) => [
-        ...prevMessages,
-        { sender: "bot", content: `Unexpected error occurred: ${err.message}` },
-      ]);
-      return [{ error: "Unexpected error occurred while executing query." }];
+      // For any other errors, try to get a direct answer from nlpModel
+      const { response } = await nlpModel.generateContent(userInput);
+      const naturalAnswer = response?.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I encountered an error.";
+      return { isDirectAnswer: true, result: naturalAnswer };
     }
   };
-  
+
   const generateNaturalLanguageResponse = async (originalQuestion, queryResult) => {
     try {
       const context = `Question: ${originalQuestion}\n\nQuery Result: ${JSON.stringify(queryResult, null, 2)}\n\nGenerate a natural language response based on the question and query result.`;
-      const { response } = await model.generateContent(context);
-  
+      const { response } = await nlpModel.generateContent(context);
+
       const naturalLanguageText =
         response?.candidates?.[0]?.content?.parts?.[0]?.text || "No response received.";
-  
+
       return naturalLanguageText;
     } catch (error) {
       console.error("Error generating natural language response:", error);
       return "Sorry, I couldn't generate a natural language response.";
     }
   };
-  
+
 
   const handleSendMessage = async () => {
     if (!userInput.trim()) return;
@@ -371,11 +358,10 @@ export const ProtectedRoute = () => {
                   className={`mb-2 ${msg.sender === "user" ? "text-right" : "text-left"}`}
                 >
                   <span
-                    className={`inline-block p-2 rounded-lg ${
-                      msg.sender === "user"
+                    className={`inline-block p-2 rounded-lg ${msg.sender === "user"
                         ? "bg-blue-100 text-blue-800"
                         : "bg-gray-100 text-gray-800"
-                    }`}
+                      }`}
                   >
                     {msg.content}
                   </span>

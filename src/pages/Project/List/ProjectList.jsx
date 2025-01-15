@@ -283,7 +283,7 @@ return (
 
     <Modal
       title="Filter Projects"
-      visible={isFilterModalVisible}
+      open={isFilterModalVisible}
       onCancel={() => setIsFilterModalVisible(false)}
       footer={null}
     >
