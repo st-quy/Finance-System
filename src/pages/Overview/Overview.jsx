@@ -9,8 +9,13 @@ import {
   message,
   Col,
   Row,
+  Spin,
 } from "antd";
-import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
+import {
+  EyeOutlined,
+  DeleteOutlined,
+  LoadingOutlined,
+} from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../supabaseClient";
 import IncomeExpensesChart from "./Components/BarChart/IncomeAndExpensesChart";
@@ -20,6 +25,9 @@ import { PredictionCard } from "./Components/Prediction/PredictionCard";
 const Overview = () => {
   const [data, setData] = useState(null);
   const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [loadingUser, setLoadingUser] = useState(false);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -27,6 +35,7 @@ const Overview = () => {
   }, []);
 
   const fetchProjects = async () => {
+    setLoading(true);
     let { data: projects, error } = await supabase
       .from("project")
       .select(
@@ -36,6 +45,7 @@ const Overview = () => {
     if (error) {
       console.error("Error fetching projects:", error);
     } else {
+      setLoading(false);
       setProjects(projects);
     }
   };
@@ -66,10 +76,12 @@ const Overview = () => {
   };
   useEffect(() => {
     const fetchData = async () => {
+      setLoadingUser(true);
       const { data: User, error } = await supabase.from("User").select("name");
       if (error) {
         console.error("Error fetching user data:", error);
       } else {
+        setLoadingUser(false);
         setData(User);
       }
     };
@@ -153,6 +165,13 @@ const Overview = () => {
       ),
     },
   ];
+  if (loading || loadingUser) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Spin size="large" />
+      </div>
+    );
+  }
 
   return (
     <div
@@ -206,6 +225,7 @@ const Overview = () => {
             dataSource={projects}
             rowKey="project_id"
             bordered
+            scroll={{ x: true }}
             pagination={{
               pageSize: 7,
               hideOnSinglePage: true,
