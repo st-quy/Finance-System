@@ -1,5 +1,6 @@
-import * as React from "react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { Button, Modal } from "antd";
+import { useNavigate } from "react-router-dom";
 import { supabase } from '../../../supabaseClient';
 import dayjs from "dayjs";
 import bg1 from "../../../assets/Images/MessGradient/mess1.png";
@@ -8,6 +9,7 @@ import bg3 from "../../../assets/Images/MessGradient/mess3.png";
 import bg4 from "../../../assets/Images/MessGradient/mess3.png";
 import bg5 from "../../../assets/Images/MessGradient/mess3.png";
 import bg6 from "../../../assets/Images/MessGradient/mess3.png";
+import { DownloadOutlined } from "@ant-design/icons";
 
 const backgrounds = [bg1, bg2, bg3, bg4, bg5, bg6];
 const bg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
@@ -30,6 +32,8 @@ const Tag = ({ text, color }) => (
 
 const ProjectSummary = ({ projectId }) => {
   const [projects, setProjects] = useState([]);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     async function fetchProjects() {
@@ -42,7 +46,25 @@ const ProjectSummary = ({ projectId }) => {
     }
     fetchProjects();
   }, [projectId]);
-  
+
+  const showModal = () => {
+    setIsModalVisible(true);
+  };
+
+  const handleOk = () => {
+    setIsModalVisible(false);
+    generateReport();
+  };
+
+  const handleCancel = () => {
+    setIsModalVisible(false);
+  };
+
+  const generateReport = () => {
+    // Navigate to the report route
+    navigate(`/projects/report/${projectId}`);
+  };
+
   const projectInfo = [
     { icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/f2a99e3042e45d5496bd593d03a65f0e112c6f198e507ee72b75d399e36993e7?placeholderIfAbsent=true&apiKey=1c5e4b15884e46cbb4105350fa4c2d13", label: "Created At", value: projects.start_date, valueClassName: "font-semibold text-stone-300" },
     {
@@ -75,53 +97,62 @@ const ProjectSummary = ({ projectId }) => {
       <div className="px-8 pt-32 pb-8 w-full rounded-2xl max-md:px-5 max-md:pt-24 max-md:max-w-full bg-cover bg-center"
         style={{ backgroundImage: `url(${bg})` }}
       >
-        <div className="flex gap-5 max-md:flex-col">
-          <div className="flex flex-col w-[32%] max-md:ml-0 max-md:w-full">
-            <div className="flex grow gap-2.5 max-md:mt-10">
-              <img
-                loading="lazy"
-                src="https://cdn.builder.io/api/v1/image/assets/TEMP/b8338c25ae7aeb68aff3b7cbd7b6facab9f1c9cdc3b980009743ac454d540d8c?placeholderIfAbsent=true&apiKey=1c5e4b15884e46cbb4105350fa4c2d13"
-                alt="Project avatar"
-                className="object-contain shrink-0 rounded-full aspect-square w-[45px]"
-              />
-              <div className="flex flex-col my-auto">
-                <div className="text-base font-bold text-white">
-                  {projects.project_name}
+        <div className="flex justify-between items-start">
+          <div className="flex gap-5 max-md:flex-col">
+            <div className="flex flex-col w-[32%] max-md:ml-0 max-md:w-full">
+              <div className="flex grow gap-2.5 max-md:mt-10">
+                <img
+                  loading="lazy"
+                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/b8338c25ae7aeb68aff3b7cbd7b6facab9f1c9cdc3b980009743ac454d540d8c?placeholderIfAbsent=true&apiKey=1c5e4b15884e46cbb4105350fa4c2d13"
+                  alt="Project avatar"
+                  className="object-contain shrink-0 rounded-full aspect-square w-[45px]"
+                />
+                <div className="flex flex-col my-auto">
+                  <div className="text-base font-bold text-white">
+                    {projects.project_name}
+                  </div>
+                  <div className="self-start text-sm font-semibold text-white text-opacity-70">
+                    This is the client's name
+                  </div>
                 </div>
-                <div className="self-start text-sm font-semibold text-white text-opacity-70">
-                  This is the client's name
+              </div>
+            </div>
+            <div className="flex flex-col ml-5 w-[68%] max-md:ml-0 max-md:w-full">
+              <div className="flex flex-wrap gap-4 items-start text-sm max-md:mt-10">
+                <div className="flex flex-col">
+                  <div className="font-semibold text-black text-opacity-40">
+                    CREATED
+                  </div>
+                  <div className="mt-1 font-medium text-black">
+                    {projects.start_date}
+                  </div>
+                </div>
+                <div className="flex flex-col">
+                  <div className="font-semibold text-black text-opacity-40">
+                    DEADLINE
+                  </div>
+                  <div className="mt-1 font-medium text-black">
+                    {projects.end_date || "Now"}
+                  </div>
+                </div>
+                <div className="flex flex-col">
+                  <div className="font-semibold text-black text-opacity-40">
+                    TRACKED TIME
+                  </div>
+                  <div className="mt-1 font-medium text-black">
+                    {dayjs().diff(projects.start_date, "day") } days
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-          <div className="flex flex-col ml-5 w-[68%] max-md:ml-0 max-md:w-full">
-            <div className="flex flex-wrap gap-4 items-start text-sm max-md:mt-10">
-              <div className="flex flex-col">
-                <div className="font-semibold text-black text-opacity-40">
-                  CREATED
-                </div>
-                <div className="mt-1 font-medium text-black">
-                  {projects.start_date}
-                </div>
-              </div>
-              <div className="flex flex-col">
-                <div className="font-semibold text-black text-opacity-40">
-                  DEADLINE
-                </div>
-                <div className="mt-1 font-medium text-black">
-                  {projects.end_date || "Now"}
-                </div>
-              </div>
-              <div className="flex flex-col">
-                <div className="font-semibold text-black text-opacity-40">
-                  TRACKED TIME
-                </div>
-                <div className="mt-1 font-medium text-black">
-                  {dayjs().diff(projects.start_date, "day") } days
-                </div>
-              </div>
-            </div>
-          </div>
+          <Button
+            type="primary"
+            icon={<DownloadOutlined />}
+            onClick={showModal}
+          >
+            Download Report
+          </Button>
         </div>
       </div>
       <div className="mt-6 max-md:max-w-full">
@@ -157,6 +188,14 @@ const ProjectSummary = ({ projectId }) => {
           </div>
         </div>
       </div>
+      <Modal
+        title="Generate Report"
+        open={isModalVisible}
+        onOk={handleOk}
+        onCancel={handleCancel}
+      >
+        <p>Are you sure you want to generate the report for this project?</p>
+      </Modal>
     </div>
   );
 }
