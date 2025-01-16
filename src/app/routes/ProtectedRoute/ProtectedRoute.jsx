@@ -1,4 +1,13 @@
-import { Layout, Menu, Affix, Button, Input, Skeleton } from "antd";
+import {
+  Layout,
+  Menu,
+  Affix,
+  Button,
+  Input,
+  Skeleton,
+  Drawer,
+  Divider,
+} from "antd";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import {
   HomeOutlined,
@@ -7,7 +16,7 @@ import {
   OpenAIOutlined,
 } from "@ant-design/icons";
 import { useSelector, useDispatch } from "react-redux";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import logo from "@assets/Images/stunited.png";
 import { logout } from "@app/features/auth/authSlice";
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -105,6 +114,18 @@ Project, User ↔ Alert: Alerts are linked to projects and optionally to users.
 `;
 
 export const ProtectedRoute = () => {
+  const [chatMessages, setChatMessages] = useState([]);
+
+  const chatContainerRef = useRef(null);
+
+  useEffect(() => {
+    // Scroll to the bottom when chatMessages change
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop =
+        chatContainerRef.current.scrollHeight;
+    }
+  }, [chatMessages]);
+
   const isAuth = localStorage.getItem("access_token");
   const dataUser = useSelector((state) => state.auth.user);
   const dispatchAuth = useDispatch();
@@ -116,7 +137,6 @@ export const ProtectedRoute = () => {
 
   const [activeKey, setActiveKey] = useState(getActiveKey(pathname));
   const [chatbotVisible, setChatbotVisible] = useState(false);
-  const [chatMessages, setChatMessages] = useState([]);
   const [userInput, setUserInput] = useState("");
   const [isLoading, setIsLoading] = useState(false); // Track loading state
 
@@ -184,7 +204,20 @@ export const ProtectedRoute = () => {
       Note: The email 'user1@example.com' is fixed and you only need to give us information related to this user.
     `;
 
-      const { response } = await sqlModel.generateContent(aiPrompt);
+
+      const { response } = await sqlModel.generateContent({
+        contents: [
+          ...chatMessages.map((msg) => {
+            return {
+              role: msg.sender === "user" ? "user" : "model",
+              parts: [{ text: msg.content }],
+            };
+          }),
+          { role: "user", parts: [{ text: aiPrompt }] },
+        ],
+      });
+
+
       let generatedSQL =
         response?.candidates?.[0]?.content?.parts?.[0]?.text ||
         "No response received.";
@@ -256,7 +289,19 @@ export const ProtectedRoute = () => {
       if (error) {
         console.error("Supabase RPC Error:", error);
         // If SQL query fails, try to get a direct answer from nlpModel
-        const { response } = await nlpModel.generateContent(userInput);
+
+        const { response } = await nlpModel.generateContent({
+          contents: [
+            ...chatMessages.map((msg) => {
+              return {
+                role: msg.sender === "user" ? "user" : "model",
+                parts: [{ text: msg.content }],
+              };
+            }),
+            { role: "user", parts: [{ text: userInput }] },
+          ],
+        });
+
         const naturalAnswer =
           response?.candidates?.[0]?.content?.parts?.[0]?.text ||
           "I couldn't understand your question.";
@@ -266,7 +311,19 @@ export const ProtectedRoute = () => {
       if (!data || data.length === 0) {
         console.warn("Query executed but returned no results.");
         // If no results found, try to get a direct answer from nlpModel
-        const { response } = await nlpModel.generateContent(userInput);
+
+        const { response } = await nlpModel.generateContent({
+          contents: [
+            ...chatMessages.map((msg) => {
+              return {
+                role: msg.sender === "user" ? "user" : "model",
+                parts: [{ text: msg.content }],
+              };
+            }),
+            { role: "user", parts: [{ text: userInput }] },
+          ],
+        });
+
         const naturalAnswer =
           response?.candidates?.[0]?.content?.parts?.[0]?.text ||
           "I couldn't find any relevant information.";
@@ -278,7 +335,19 @@ export const ProtectedRoute = () => {
     } catch (err) {
       console.error("Unexpected Error:", err);
       // For any other errors, try to get a direct answer from nlpModel
-      const { response } = await nlpModel.generateContent(userInput);
+
+      const { response } = await nlpModel.generateContent({
+        contents: [
+          ...chatMessages.map((msg) => {
+            return {
+              role: msg.sender === "user" ? "user" : "model",
+              parts: [{ text: msg.content }],
+            };
+          }),
+          { role: "user", parts: [{ text: userInput }] },
+        ],
+      });
+
       const naturalAnswer =
         response?.candidates?.[0]?.content?.parts?.[0]?.text ||
         "Sorry, I encountered an error.";
@@ -292,7 +361,17 @@ export const ProtectedRoute = () => {
   ) => {
     try {
       const context = `Question: ${originalQuestion}\n\nQuery Result: ${JSON.stringify(queryResult, null, 2)}\n\nGenerate a natural language response based on the question and query result.`;
-      const { response } = await nlpModel.generateContent(context);
+      const { response } = await nlpModel.generateContent({
+        contents: [
+          ...chatMessages.map((msg) => {
+            return {
+              role: msg.sender === "user" ? "user" : "model",
+              parts: [{ text: msg.content }],
+            };
+          }),
+          { role: "user", parts: [{ text: context }] },
+        ],
+      });
 
       const naturalLanguageText =
         response?.candidates?.[0]?.content?.parts?.[0]?.text ||
@@ -326,6 +405,8 @@ export const ProtectedRoute = () => {
         <div className="flex justify-center items-center m-4 gap-2">
           <img src={logo} alt="logo" className="w-14 h-14 cursor-pointer" />
         </div>
+        <div className="pl-4 text-sm font-semibold">MAIN MENU</div>
+        <Divider className="m-2" />
         <Menu
           theme="dark"
           mode="vertical"
@@ -359,17 +440,22 @@ export const ProtectedRoute = () => {
           />
         </Affix>
         {chatbotVisible && (
-          <div
-            className="fixed bottom-20 right-16 bg-white shadow-lg rounded-lg p-4 flex flex-col z-50"
-            style={{ width: "300px", height: "400px" }}
+
+          <Drawer
+            open={chatbotVisible}
+            onClose={() => setChatbotVisible(false)}
+            title="FIN. Assistant"
+            width="500"
+
           >
-            <h3 className="text-center mb-4">Google AI Chatbot</h3>
             <div
-              className="overflow-auto flex-1"
+              ref={chatContainerRef} // Attach the ref here
+              className="overflow-auto flex-1 "
               style={{
                 border: "1px solid #ddd",
                 padding: "10px",
                 marginBottom: "10px",
+                height: "calc(100vh - 200px)",
               }}
             >
               {chatMessages.map((msg, index) => (
@@ -391,7 +477,7 @@ export const ProtectedRoute = () => {
               {/* Show skeleton loading if isLoading is true */}
               {isLoading && (
                 <div className="text-left">
-                  <Skeleton active title={false} paragraph={{ rows: 1 }} />
+                  <Skeleton active title={false} paragraph={{ rows: 2 }} />
                 </div>
               )}
             </div>
@@ -402,7 +488,7 @@ export const ProtectedRoute = () => {
               placeholder="Type a message..."
               enterButton="Send"
             />
-          </div>
+          </Drawer>
         )}
       </Layout>
     </Layout>
