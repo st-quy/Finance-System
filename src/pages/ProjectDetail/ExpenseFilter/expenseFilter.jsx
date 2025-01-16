@@ -86,7 +86,7 @@ const ExpenseFilter = ({ onFilterChange, onAddExpense, onDeleteSelected, selecte
                             role="tab"
                             tabIndex={0}
                             aria-selected={activeTab === tab.label}
-                            className={`flex items-center justify-center h-8 overflow-hidden px-3 rounded-lg cursor-pointer transition-colors ${activeTab === tab.label ? "font-semibold text-indigo-800 bg-indigo-50" : ""}`}
+                            className={`flex items-center justify-center h-8 overflow-hidden px-3 rounded-lg cursor-pointer transition-colors ${activeTab === tab.label ? "font-semibold text-blue-800 bg-blue-50" : ""}`}
                         >
                             {tab.label}
                         </div>

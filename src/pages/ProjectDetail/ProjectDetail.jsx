@@ -13,7 +13,7 @@ const ProjectDetails = () => {
   return (
     <>
       <Row className="w-full mb-4" gutter={[16, 16]}>
-        <ProjectSummary projectId={projectID} />
+        <ProjectSummary projectId={projectID}/>
       </Row>
       <Row className="w-full mb-4" gutter={[16, 16]}>
         <BudgetDistribution projectId={projectId} />

@@ -16,6 +16,22 @@ const styles = {
 };
 
 export function PredictionCard() {
+  const [predictions, setPredictions] = React.useState(null);
+
+  // React의 useEffect 훅을 사용하여 Flask API에서 데이터를 가져옵니다.
+  React.useEffect(() => {
+    fetch("http://127.0.0.1:5000/api/predict")
+      .then((response) => response.json())
+      .then((data) => setPredictions(data))
+      .catch((error) => console.error("Error fetching data:", error));
+  }, []);
+
+  console.log(predictions);
+
+  if (!predictions) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className={styles.card}>
       <div className={styles.header}>

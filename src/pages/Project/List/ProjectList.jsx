@@ -82,8 +82,8 @@ const ProjectList = () => {
     if (filters.inProcess !== null) {
       projects = projects.filter((project) =>
         filters.inProcess
-          ? !project.end_date 
-          : project.end_date 
+          ? !project.end_date
+          : project.end_date
       );
     }
 
@@ -262,7 +262,7 @@ const ProjectList = () => {
           borderRadius: "10px",
           padding: "20px 30px",
           height: "200px",
-          width: "97%",
+          width: "100%",
           margin: "0 auto",
           position: "relative",
           overflow: "hidden",
@@ -339,19 +339,20 @@ const ProjectList = () => {
               color: "#dcdcdc",
             }}
           >
-            Project Management is a comprehensive solution designed to streamline workflows and enhance team collaboration. 
-            It provides robust tools for project planning, task assignment, progress tracking, and real-time communication. 
-            With its user-friendly interface and powerful features, it helps teams stay organized, meet deadlines, and achieve 
+            Project Management is a comprehensive solution designed to streamline workflows and enhance team collaboration.
+            It provides robust tools for project planning, task assignment, progress tracking, and real-time communication.
+            With its user-friendly interface and powerful features, it helps teams stay organized, meet deadlines, and achieve
             their goals efficiently.
           </Typography.Paragraph>
         </div>
       </Header>
 
-      <Content style={{ padding: "20px" }}>
+      <Content>
         <Card
           bordered={false}
           style={{
             marginBottom: "20px",
+            marginTop: "20px",
             boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
             borderRadius: "8px",
           }}
@@ -412,28 +413,21 @@ const ProjectList = () => {
                 Filter
               </Button>
               <Button
+                type="primary"
                 icon={<PlusOutlined />}
                 onClick={() => navigate("/projects/create")}
-                style={{
-                  backgroundColor: "#ff8c00",
-                  borderColor: "#ff8c00",    
-                  color: "#fff",            
-                }}
               >
                 Add
               </Button>
-              <Button
-                type="danger"
-                icon={<DeleteOutlined />}
-                onClick={handleBulkDelete}
-                disabled={selectedProjects.length === 0}
-                style={{
-                  backgroundColor: "#fff", 
-                  borderColor: "#ff4d4f",
-                  color: "#ff4d4f",
-                }}
-              >
-              </Button>
+              {selectedProjects.length != 0 && (
+                <Button
+                  color="danger"
+                  variant="outlined"
+                  icon={<DeleteOutlined />}
+                  onClick={handleBulkDelete}
+                > {selectedProjects.length}
+                </Button>
+              )}
             </Space>
           </Space>
         </Card>
@@ -442,11 +436,16 @@ const ProjectList = () => {
           dataSource={projects}
           rowKey="project_id"
           pagination={{ pageSize: 10 }}
-          scroll={{x: true}}
+          scroll={{ x: true }}
+          style={{
+            backgroundColor: "#fff",
+            borderRadius: "10px",
+            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+          }}
         />
       </Content>
       <Footer style={{ textAlign: "center" }}>
-        Project Management ©2025 Created by Your Name
+        Project Management ©2025 Created by Quy, Bui Phuoc Khang, Lee Hyewon, Park Minhuyp, Gu Seonghee
       </Footer>
       <Modal
         title="Filter Projects"

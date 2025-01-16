@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import logo from "@assets/Images/stunited.png";
 import { logout } from "@app/features/auth/authSlice";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import ReactMarkdown from 'react-markdown';
 
 import { createClient } from "@supabase/supabase-js";
 
@@ -51,7 +52,7 @@ b. Project:
 Primary Key: project_id (auto-incremented).
 Fields:
 project_name: Name of the project.
-project_value: Monetary value of the project.
+project_value: Monetary value of the project or revenue from the project.
 project_type: Category of the project.
 start_date: Project start date.
 end_date: (Optional) Project end date.
@@ -154,6 +155,32 @@ export const ProtectedRoute = () => {
       
       Based on the schema above, generate a PostgreSQL query that answers the user's question. The query should return results in the following JSON format:
 
+      Example for question: "What is the profit for the current month?"
+      SELECT json_build_object(
+      'total_project_value', COALESCE(total_project_value, 0),
+      'total_expense', COALESCE(total_expense, 0),
+      'profit', COALESCE(total_project_value, 0) - COALESCE(total_expense, 0)
+      ) AS result
+      FROM (
+      SELECT 
+        SUM(CASE 
+                WHEN EXTRACT(MONTH FROM p.start_date) = EXTRACT(MONTH FROM CURRENT_DATE) 
+                AND EXTRACT(YEAR FROM p.start_date) = EXTRACT(YEAR FROM CURRENT_DATE) 
+                THEN p.project_value 
+                ELSE 0 
+            END) AS total_project_value,
+        SUM(CASE 
+                WHEN EXTRACT(MONTH FROM e.expense_date) = EXTRACT(MONTH FROM CURRENT_DATE) 
+                AND EXTRACT(YEAR FROM e.expense_date) = EXTRACT(YEAR FROM CURRENT_DATE) 
+                THEN e.amount 
+                ELSE 0 
+            END) AS total_expense
+    FROM 
+        project p
+    LEFT JOIN 
+        expense e ON p.project_id = e.project_id
+) AS summary;
+
       Example for question: "Which project has the highest total expenses?"
       Expected result:
       SELECT json_agg(
@@ -168,9 +195,9 @@ export const ProtectedRoute = () => {
               SUM(e.amount) AS total_expense,
               RANK() OVER (ORDER BY SUM(e.amount) DESC) as expense_rank
           FROM 
-              Project p
+              project p
           JOIN 
-              Expense e ON p.project_id = e.project_id
+              expense e ON p.project_id = e.project_id
           GROUP BY 
               p.project_name
           ORDER BY expense_rank ASC
@@ -216,7 +243,7 @@ export const ProtectedRoute = () => {
         ]);
       } else {
         // If it's a SQL result, process it through natural language generation
-        const refinedMessage = `${message}. Additionally, please remove any references to user email like 'user1@example.com' in the response. Don't format the text (Bold, Italic, Underline). This is an example answer. Here is a summary of the project and its total cost: The following projects have been identified with the relevant costs: Project 34: $9151.46, Project 47: $9583.62, Project 30: $11153.02.`;
+        const refinedMessage = `${message}. Additionally, please remove any references to user email like 'user1@example.com' in the response. This is an example answer. Here is a summary of the project and its total cost: The following projects have been identified with the relevant costs: Project 34: $9151.46, Project 47: $9583.62, Project 30: $11153.02.`;
         const naturalLanguageResult = await generateNaturalLanguageResponse(
           refinedMessage,
           queryResult.result
@@ -378,13 +405,28 @@ export const ProtectedRoute = () => {
                   className={`mb-2 ${msg.sender === "user" ? "text-right" : "text-left"}`}
                 >
                   <span
-                    className={`inline-block p-2 rounded-lg ${
-                      msg.sender === "user"
+                    className={`inline-block p-2 rounded-lg ${msg.sender === "user"
                         ? "bg-blue-100 text-blue-800"
                         : "bg-gray-100 text-gray-800"
-                    }`}
+                      }`}
                   >
-                    {msg.content}
+                    {msg.sender === "user" ? (
+                      msg.content
+                    ) : (
+                      <ReactMarkdown className="markdown-content"
+                        components={{
+                          // Override default elements with custom styling
+                          p: ({ node, ...props }) => <p className="mb-2" {...props} />,
+                          ul: ({ node, ...props }) => <ul className="list-disc ml-4 mb-2" {...props} />,
+                          ol: ({ node, ...props }) => <ol className="list-decimal ml-4 mb-2" {...props} />,
+                          li: ({ node, ...props }) => <li className="mb-1" {...props} />,
+                          code: ({ node, ...props }) => (
+                            <code className="bg-gray-100 px-1 rounded" {...props} />
+                          ),
+                        }}>
+                        {msg.content}
+                      </ReactMarkdown>
+                    )}
                   </span>
                 </div>
               ))}
