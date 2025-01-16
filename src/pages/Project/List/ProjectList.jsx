@@ -13,8 +13,7 @@ import {
   Form,
   Select,
   DatePicker,
-
-
+  Checkbox,
 } from "antd";
 import {
   EyeOutlined,
@@ -41,7 +40,7 @@ const ProjectList = () => {
     inProcess: null,
   });
   const [inProcess, setInProcess] = useState(false);
-
+  const [selectedProjects, setSelectedProjects] = useState([]);
 
   const supabaseUrl = "https://dilsljuynpaogrrxqolf.supabase.co";
   const supabaseKey =
@@ -81,12 +80,10 @@ const ProjectList = () => {
     }
 
     if (filters.inProcess !== null) {
-
-      projects = projects.filter(
-        (project) =>
-          filters.inProcess
-            ? !project.end_date // 진행 중인 경우 end_date가 없음을 필터링
-            : project.end_date // 완료된 경우 end_date가 있는 항목 필터링
+      projects = projects.filter((project) =>
+        filters.inProcess
+          ? !project.end_date 
+          : project.end_date 
       );
     }
 
@@ -131,10 +128,71 @@ const ProjectList = () => {
     });
   };
 
+  const handleBulkDelete = async () => {
+    Modal.confirm({
+      title: "Are you sure?",
+      content: "This action will permanently delete the selected projects.",
+      okText: "Yes, delete them",
+      cancelText: "Cancel",
+      onOk: async () => {
+        const { error } = await supabase
+          .from("project")
+          .delete()
+          .in("project_id", selectedProjects);
+
+        if (error) {
+          message.error("Failed to delete the selected projects.");
+          console.error("Error deleting projects:", error);
+        } else {
+          message.success("Selected projects deleted successfully.");
+          setSelectedProjects([]);
+          fetchProjects();
+        }
+      },
+    });
+  };
+
+  const handleCheckboxChange = (projectId, isChecked) => {
+    setSelectedProjects((prevSelected) =>
+      isChecked
+        ? [...prevSelected, projectId]
+        : prevSelected.filter((id) => id !== projectId)
+    );
+  };
 
   const columns = [
     {
-
+      title: (
+        <Checkbox
+          onChange={(e) => {
+            const isChecked = e.target.checked;
+            setSelectedProjects(
+              isChecked ? projects.map((project) => project.project_id) : []
+            );
+          }}
+          checked={
+            selectedProjects.length > 0 &&
+            selectedProjects.length === projects.length
+          }
+          indeterminate={
+            selectedProjects.length > 0 &&
+            selectedProjects.length < projects.length
+          }
+        />
+      ),
+      dataIndex: "select",
+      key: "select",
+      align: "center",
+      render: (_, record) => (
+        <Checkbox
+          onChange={(e) =>
+            handleCheckboxChange(record.project_id, e.target.checked)
+          }
+          checked={selectedProjects.includes(record.project_id)}
+        />
+      ),
+    },
+    {
       title: "Project ID",
       dataIndex: "project_id",
       key: "project_id",
@@ -204,32 +262,101 @@ const ProjectList = () => {
           borderRadius: "10px",
           padding: "20px 30px",
           height: "200px",
-          width: "100%",
+          width: "97%",
           margin: "0 auto",
+          position: "relative",
+          overflow: "hidden",
+          display: "flex", // 플렉스 레이아웃 추가
+          alignItems: "center",
+          justifyContent: "space-between",
         }}
       >
-        <Typography.Title
-          level={3}
-          style={{ color: "#fff", margin: "0", lineHeight: "64px" }}
+        {/* 배경 패턴 */}
+        <div
+          style={{
+            position: "absolute",
+            top: "0",
+            left: "0",
+            width: "100%",
+            height: "100%",
+            background: "radial-gradient(circle at top left, #2A3E70, transparent)",
+            zIndex: 0,
+          }}
+        ></div>
+        <div
+          style={{
+            position: "relative",
+            zIndex: 1,
+            flex: "1",
+          }}
         >
-          Project Management
-        </Typography.Title>
+          <Typography.Title
+            level={3}
+            style={{
+              color: "#fff",
+              margin: "0",
+              fontSize: "28px",
+              fontWeight: "bold",
+            }}
+          >
+            Project Management
+          </Typography.Title>
+          <Typography.Text
+            style={{
+              color: "#dcdcdc",
+              marginTop: "10px",
+              fontSize: "13px",
+              display: "block",
+            }}
+          >
+            Manage your projects efficiently
+          </Typography.Text>
+        </div>
+        <div
+          style={{
+            position: "relative",
+            zIndex: 1,
+            flex: "1",
+            paddingLeft: "20px",
+            color: "#dcdcdc",
+          }}
+        >
+          <Typography.Title
+            level={4}
+            style={{
+              color: "#fff",
+              margin: "0 0 10px",
+              fontSize: "20px",
+              fontWeight: "bold",
+            }}
+          >
+            Description
+          </Typography.Title>
+          <Typography.Paragraph
+            style={{
+              margin: "0",
+              fontSize: "12px",
+              color: "#dcdcdc",
+            }}
+          >
+            Project Management is a comprehensive solution designed to streamline workflows and enhance team collaboration. 
+            It provides robust tools for project planning, task assignment, progress tracking, and real-time communication. 
+            With its user-friendly interface and powerful features, it helps teams stay organized, meet deadlines, and achieve 
+            their goals efficiently.
+          </Typography.Paragraph>
+        </div>
       </Header>
+
       <Content style={{ padding: "20px" }}>
         <Card
           bordered={false}
           style={{
-
             marginBottom: "20px",
-            marginTop: "20px",
             boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
             borderRadius: "8px",
           }}
         >
           <Space
-
-            wrap
-
             style={{
               display: "flex",
               justifyContent: "space-between",
@@ -257,52 +384,56 @@ const ProjectList = () => {
                 style={{
                   flex: 1,
                   border: "none",
-                  // padding: "8px 12px",
+                  padding: "8px 12px",
                   minWidth: "10rem",
-                  height: "40px",
+                  height: "33px",
                 }}
+                prefix={<SearchOutlined style={{ color: "rgba(0,0,0,0.45)" }} />}
               />
               <button
                 onClick={handleSearch}
                 style={{
-                  backgroundColor: "#4CAF50",
-                  color: "#fff",
+                  backgroundColor: "#4C0C0C0",
+                  color: "#000000",
                   border: "none",
                   padding: "8px 16px",
                   cursor: "pointer",
-                  height: "40px",
+                  height: "33px",
                 }}
               >
                 Search
               </button>
             </div>
-
-            <Space style={{ gap: "8px" }} wrap>
+            <Space style={{ gap: "16px" }} wrap>
               <Button
-                type="primary"
+                icon={<SearchOutlined />}
+                onClick={() => setIsFilterModalVisible(true)}
+              >
+                Filter
+              </Button>
+              <Button
                 icon={<PlusOutlined />}
                 onClick={() => navigate("/projects/create")}
-
                 style={{
-                  width: "160px",
-                  height: "40px",
-                  borderRadius: "8px",
-                  backgroundColor: "#1C2951",
-                  color: "#fff",
-                  border: "none",
+                  backgroundColor: "#ff8c00",
+                  borderColor: "#ff8c00",    
+                  color: "#fff",            
                 }}
               >
-                Create Project
+                Add
               </Button>
-              {selectedProjects.length != 0 && (
-                <Button
-                  color="danger"
-                  variant="outlined"
-                  icon={<DeleteOutlined />}
-                  onClick={handleBulkDelete}
-                > {selectedProjects.length}
-                </Button>
-              )}
+              <Button
+                type="danger"
+                icon={<DeleteOutlined />}
+                onClick={handleBulkDelete}
+                disabled={selectedProjects.length === 0}
+                style={{
+                  backgroundColor: "#fff", 
+                  borderColor: "#ff4d4f",
+                  color: "#ff4d4f",
+                }}
+              >
+              </Button>
             </Space>
           </Space>
         </Card>
@@ -311,59 +442,38 @@ const ProjectList = () => {
           dataSource={projects}
           rowKey="project_id"
           pagination={{ pageSize: 10 }}
-          scroll={{ x: true }}
-          style={{
-            backgroundColor: "#fff",
-            borderRadius: "10px",
-            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-          }}
+          scroll={{x: true}}
         />
       </Content>
       <Footer style={{ textAlign: "center" }}>
-        Project Management ©2025 Created by Quy, Bui Phuoc Khang, Lee Hyewon, Park Minhuyp, Gu Seonghee
+        Project Management ©2025 Created by Your Name
       </Footer>
       <Modal
         title="Filter Projects"
-        open={isFilterModalVisible}
+        visible={isFilterModalVisible}
         onCancel={() => setIsFilterModalVisible(false)}
         footer={null}
       >
         <Form onFinish={handleFilterApply}>
-          <Form.Item name="projectType" label="Project Type">
-            <Select placeholder="Select a type">
-              <Option value="Tech Upgrade">Tech Upgrade</Option>
-              <Option value="Android">Android</Option>
-              <Option value="IOS">IOS</Option>
-              <Option value="AI">AI</Option>
+          <Form.Item label="Project Type" name="projectType">
+            <Select allowClear>
+              <Option value="type1">Type 1</Option>
+              <Option value="type2">Type 2</Option>
+              <Option value="type3">Type 3</Option>
             </Select>
           </Form.Item>
-          <Form.Item name="startDate" label="Start Date">
-            <RangePicker style={{ width: "100%" }} />
+          <Form.Item label="Date Range" name="dateRange">
+            <RangePicker />
           </Form.Item>
-          <Form.Item
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <Button
-              type={inProcess ? "primary" : "default"}
-              onClick={() => setInProcess(!inProcess)}
-              style={{
-                marginBottom: "16px",
-              }}
+          <Form.Item>
+            <Checkbox
+              checked={inProcess}
+              onChange={(e) => setInProcess(e.target.checked)}
             >
-              {inProcess ? "In Process Selected" : "In Process"}
-            </Button>
+              In Process
+            </Checkbox>
           </Form.Item>
-          <Form.Item
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
+          <Form.Item>
             <Button type="primary" htmlType="submit">
               Apply Filters
             </Button>
