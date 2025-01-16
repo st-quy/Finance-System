@@ -14,19 +14,21 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 import { createClient } from "@supabase/supabase-js";
 
-
-
 const { Content, Sider, Header } = Layout;
 
 // Initialize Google Generative AI client
 const genAI = new GoogleGenerativeAI("AIzaSyAkT139KfdEYt7_vB55ecSDUlVlNS6Tyxo");
-const sqlModel = genAI.getGenerativeModel({ model: "tunedModels/chatbotprompt-lt2p15q1s20p" });
-const nlpModel = genAI.getGenerativeModel({ model: "tunedModels/naturallanguageprompt-12kpz8gmrbb0" });
-
+const sqlModel = genAI.getGenerativeModel({
+  model: "tunedModels/chatbotprompt-lt2p15q1s20p",
+});
+const nlpModel = genAI.getGenerativeModel({
+  model: "tunedModels/naturallanguageprompt-12kpz8gmrbb0",
+});
 
 // Initialize Supabase client
 const supabaseUrl = "https://dilsljuynpaogrrxqolf.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpbHNsanV5bnBhb2dycnhxb2xmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYyMTc0MDAsImV4cCI6MjA1MTc5MzQwMH0.4hvawiI87VmdXSXYlxKnYp7nkn7emE4rn6Y3hWTE4LU";
+const supabaseKey =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpbHNsanV5bnBhb2dycnhxb2xmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYyMTc0MDAsImV4cCI6MjA1MTc5MzQwMH0.4hvawiI87VmdXSXYlxKnYp7nkn7emE4rn6Y3hWTE4LU";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Database Schema for AI
@@ -101,7 +103,6 @@ Project ↔ Expense: Projects have multiple expenses.
 Project ↔ Report: Financial reports are tied to projects.
 Project, User ↔ Alert: Alerts are linked to projects and optionally to users.
 `;
-
 
 export const ProtectedRoute = () => {
   const isAuth = localStorage.getItem("access_token");
@@ -183,10 +184,10 @@ export const ProtectedRoute = () => {
       Note: The email 'user1@example.com' is fixed and you only need to give us information related to this user.
     `;
 
-
       const { response } = await sqlModel.generateContent(aiPrompt);
       let generatedSQL =
-        response?.candidates?.[0]?.content?.parts?.[0]?.text || "No response received.";
+        response?.candidates?.[0]?.content?.parts?.[0]?.text ||
+        "No response received.";
 
       // Step 1.1: SQL 쿼리에서 Markdown 코드 블록 제거
       generatedSQL = generatedSQL.replace(/```sql|```/g, "").trim();
@@ -204,7 +205,6 @@ export const ProtectedRoute = () => {
         content: `Generated SQL: ${generatedSQL}`,
       };
 
-
       // Step 2: Supabase에서 SQL 쿼리 실행
       const queryResult = await executeSQLQuery(generatedSQL);
 
@@ -217,8 +217,14 @@ export const ProtectedRoute = () => {
       } else {
         // If it's a SQL result, process it through natural language generation
         const refinedMessage = `${message}. Additionally, please remove any references to user email like 'user1@example.com' in the response. Don't format the text (Bold, Italic, Underline). This is an example answer. Here is a summary of the project and its total cost: The following projects have been identified with the relevant costs: Project 34: $9151.46, Project 47: $9583.62, Project 30: $11153.02.`;
-        const naturalLanguageResult = await generateNaturalLanguageResponse(refinedMessage, queryResult.result);
-        const refinedResult = naturalLanguageResult.replace(/, managed by [^,]+, /, ', ');
+        const naturalLanguageResult = await generateNaturalLanguageResponse(
+          refinedMessage,
+          queryResult.result
+        );
+        const refinedResult = naturalLanguageResult.replace(
+          /, managed by [^,]+, /,
+          ", "
+        );
         setChatMessages((prevMessages) => [
           ...prevMessages,
           { sender: "bot", content: refinedResult },
@@ -228,7 +234,10 @@ export const ProtectedRoute = () => {
       console.error("Error processing query:", error);
       setChatMessages((prevMessages) => [
         ...prevMessages,
-        { sender: "bot", content: "Sorry, there was an error processing your request." },
+        {
+          sender: "bot",
+          content: "Sorry, there was an error processing your request.",
+        },
       ]);
     } finally {
       setIsLoading(false); // Set loading state to false after response
@@ -237,16 +246,20 @@ export const ProtectedRoute = () => {
 
   const executeSQLQuery = async (query) => {
     try {
-      const sanitizedQuery = query.replace(/;/g, '');
+      const sanitizedQuery = query.replace(/;/g, "");
       console.log("Executing SQL Query:", sanitizedQuery);
 
-      const { data, error } = await supabase.rpc("execute_query", { query: sanitizedQuery });
+      const { data, error } = await supabase.rpc("execute_query", {
+        query: sanitizedQuery,
+      });
 
       if (error) {
         console.error("Supabase RPC Error:", error);
         // If SQL query fails, try to get a direct answer from nlpModel
         const { response } = await nlpModel.generateContent(userInput);
-        const naturalAnswer = response?.candidates?.[0]?.content?.parts?.[0]?.text || "I couldn't understand your question.";
+        const naturalAnswer =
+          response?.candidates?.[0]?.content?.parts?.[0]?.text ||
+          "I couldn't understand your question.";
         return { isDirectAnswer: true, result: naturalAnswer };
       }
 
@@ -254,7 +267,9 @@ export const ProtectedRoute = () => {
         console.warn("Query executed but returned no results.");
         // If no results found, try to get a direct answer from nlpModel
         const { response } = await nlpModel.generateContent(userInput);
-        const naturalAnswer = response?.candidates?.[0]?.content?.parts?.[0]?.text || "I couldn't find any relevant information.";
+        const naturalAnswer =
+          response?.candidates?.[0]?.content?.parts?.[0]?.text ||
+          "I couldn't find any relevant information.";
         return { isDirectAnswer: true, result: naturalAnswer };
       }
 
@@ -264,18 +279,24 @@ export const ProtectedRoute = () => {
       console.error("Unexpected Error:", err);
       // For any other errors, try to get a direct answer from nlpModel
       const { response } = await nlpModel.generateContent(userInput);
-      const naturalAnswer = response?.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I encountered an error.";
+      const naturalAnswer =
+        response?.candidates?.[0]?.content?.parts?.[0]?.text ||
+        "Sorry, I encountered an error.";
       return { isDirectAnswer: true, result: naturalAnswer };
     }
   };
 
-  const generateNaturalLanguageResponse = async (originalQuestion, queryResult) => {
+  const generateNaturalLanguageResponse = async (
+    originalQuestion,
+    queryResult
+  ) => {
     try {
       const context = `Question: ${originalQuestion}\n\nQuery Result: ${JSON.stringify(queryResult, null, 2)}\n\nGenerate a natural language response based on the question and query result.`;
       const { response } = await nlpModel.generateContent(context);
 
       const naturalLanguageText =
-        response?.candidates?.[0]?.content?.parts?.[0]?.text || "No response received.";
+        response?.candidates?.[0]?.content?.parts?.[0]?.text ||
+        "No response received.";
 
       return naturalLanguageText;
     } catch (error) {
@@ -283,7 +304,6 @@ export const ProtectedRoute = () => {
       return "Sorry, I couldn't generate a natural language response.";
     }
   };
-
 
   const handleSendMessage = async () => {
     if (!userInput.trim()) return;
@@ -340,7 +360,7 @@ export const ProtectedRoute = () => {
         </Affix>
         {chatbotVisible && (
           <div
-            className="fixed bottom-20 right-16 bg-white shadow-lg rounded-lg p-4 flex flex-col"
+            className="fixed bottom-20 right-16 bg-white shadow-lg rounded-lg p-4 flex flex-col z-50"
             style={{ width: "300px", height: "400px" }}
           >
             <h3 className="text-center mb-4">Google AI Chatbot</h3>
@@ -358,10 +378,11 @@ export const ProtectedRoute = () => {
                   className={`mb-2 ${msg.sender === "user" ? "text-right" : "text-left"}`}
                 >
                   <span
-                    className={`inline-block p-2 rounded-lg ${msg.sender === "user"
+                    className={`inline-block p-2 rounded-lg ${
+                      msg.sender === "user"
                         ? "bg-blue-100 text-blue-800"
                         : "bg-gray-100 text-gray-800"
-                      }`}
+                    }`}
                   >
                     {msg.content}
                   </span>
