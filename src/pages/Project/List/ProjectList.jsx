@@ -13,6 +13,8 @@ import {
   Form,
   Select,
   DatePicker,
+
+
 } from "antd";
 import {
   EyeOutlined,
@@ -39,6 +41,7 @@ const ProjectList = () => {
     inProcess: null,
   });
   const [inProcess, setInProcess] = useState(false);
+
 
   const supabaseUrl = "https://dilsljuynpaogrrxqolf.supabase.co";
   const supabaseKey =
@@ -78,11 +81,13 @@ const ProjectList = () => {
     }
 
     if (filters.inProcess !== null) {
+
       projects = projects.filter(
         (project) =>
           filters.inProcess
             ? !project.end_date // 진행 중인 경우 end_date가 없음을 필터링
             : project.end_date // 완료된 경우 end_date가 있는 항목 필터링
+
       );
     }
 
@@ -127,8 +132,10 @@ const ProjectList = () => {
     });
   };
 
+
   const columns = [
     {
+
       title: "Project ID",
       dataIndex: "project_id",
       key: "project_id",
@@ -195,6 +202,7 @@ const ProjectList = () => {
       <Header
         style={{
           backgroundColor: "#1C2951",
+
           padding: "0 19px",
           width: "97%",
           margin: "0 auto",
@@ -211,13 +219,16 @@ const ProjectList = () => {
         <Card
           bordered={false}
           style={{
+
             marginBottom: "20px",
             boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
             borderRadius: "8px",
           }}
         >
           <Space
+
             wrap
+
             style={{
               display: "flex",
               justifyContent: "space-between",
@@ -225,6 +236,7 @@ const ProjectList = () => {
               width: "100%",
               gap: "16px",
             }}
+            wrap
           >
             <div
               style={{

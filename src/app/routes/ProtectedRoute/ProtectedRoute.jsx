@@ -204,6 +204,7 @@ export const ProtectedRoute = () => {
       Note: The email 'user1@example.com' is fixed and you only need to give us information related to this user.
     `;
 
+
       const { response } = await sqlModel.generateContent({
         contents: [
           ...chatMessages.map((msg) => {
@@ -215,6 +216,7 @@ export const ProtectedRoute = () => {
           { role: "user", parts: [{ text: aiPrompt }] },
         ],
       });
+
 
       let generatedSQL =
         response?.candidates?.[0]?.content?.parts?.[0]?.text ||
@@ -287,6 +289,7 @@ export const ProtectedRoute = () => {
       if (error) {
         console.error("Supabase RPC Error:", error);
         // If SQL query fails, try to get a direct answer from nlpModel
+
         const { response } = await nlpModel.generateContent({
           contents: [
             ...chatMessages.map((msg) => {
@@ -298,6 +301,7 @@ export const ProtectedRoute = () => {
             { role: "user", parts: [{ text: userInput }] },
           ],
         });
+
         const naturalAnswer =
           response?.candidates?.[0]?.content?.parts?.[0]?.text ||
           "I couldn't understand your question.";
@@ -307,6 +311,7 @@ export const ProtectedRoute = () => {
       if (!data || data.length === 0) {
         console.warn("Query executed but returned no results.");
         // If no results found, try to get a direct answer from nlpModel
+
         const { response } = await nlpModel.generateContent({
           contents: [
             ...chatMessages.map((msg) => {
@@ -318,6 +323,7 @@ export const ProtectedRoute = () => {
             { role: "user", parts: [{ text: userInput }] },
           ],
         });
+
         const naturalAnswer =
           response?.candidates?.[0]?.content?.parts?.[0]?.text ||
           "I couldn't find any relevant information.";
@@ -329,6 +335,7 @@ export const ProtectedRoute = () => {
     } catch (err) {
       console.error("Unexpected Error:", err);
       // For any other errors, try to get a direct answer from nlpModel
+
       const { response } = await nlpModel.generateContent({
         contents: [
           ...chatMessages.map((msg) => {
@@ -340,6 +347,7 @@ export const ProtectedRoute = () => {
           { role: "user", parts: [{ text: userInput }] },
         ],
       });
+
       const naturalAnswer =
         response?.candidates?.[0]?.content?.parts?.[0]?.text ||
         "Sorry, I encountered an error.";
@@ -432,11 +440,13 @@ export const ProtectedRoute = () => {
           />
         </Affix>
         {chatbotVisible && (
+
           <Drawer
             open={chatbotVisible}
             onClose={() => setChatbotVisible(false)}
             title="FIN. Assistant"
             width="500"
+
           >
             <div
               ref={chatContainerRef} // Attach the ref here
