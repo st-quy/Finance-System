@@ -335,8 +335,7 @@ const ProjectList = () => {
           <Typography.Paragraph
             style={{
               margin: "0",
-              fontSize: "13px",
-              lineHeight: "1.5",
+              fontSize: "12px",
               color: "#dcdcdc",
             }}
           >
@@ -365,6 +364,7 @@ const ProjectList = () => {
               width: "100%",
               gap: "16px",
             }}
+            wrap
           >
             <div
               style={{
@@ -385,7 +385,7 @@ const ProjectList = () => {
                   flex: 1,
                   border: "none",
                   padding: "8px 12px",
-                  width: "400px",
+                  minWidth: "10rem",
                   height: "33px",
                 }}
                 prefix={<SearchOutlined style={{ color: "rgba(0,0,0,0.45)" }} />}
@@ -404,7 +404,7 @@ const ProjectList = () => {
                 Search
               </button>
             </div>
-            <Space style={{ gap: "16px" }}>
+            <Space style={{ gap: "16px" }} wrap>
               <Button
                 icon={<SearchOutlined />}
                 onClick={() => setIsFilterModalVisible(true)}
@@ -442,6 +442,7 @@ const ProjectList = () => {
           dataSource={projects}
           rowKey="project_id"
           pagination={{ pageSize: 10 }}
+          scroll={{x: true}}
         />
       </Content>
       <Footer style={{ textAlign: "center" }}>

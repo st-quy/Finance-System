@@ -9,18 +9,25 @@ import {
   message,
   Col,
   Row,
+  Spin,
 } from "antd";
-import { EyeOutlined, DeleteOutlined } from "@ant-design/icons";
+import {
+  EyeOutlined,
+  DeleteOutlined,
+  LoadingOutlined,
+} from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../supabaseClient";
 import IncomeExpensesChart from "./Components/BarChart/IncomeAndExpensesChart";
 import OverviewCard from "./Components/OverViewCards/OverviewCard";
 import { PredictionCard } from "./Components/Prediction/PredictionCard";
 
-
 const Overview = () => {
   const [data, setData] = useState(null);
   const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [loadingUser, setLoadingUser] = useState(false);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -28,6 +35,7 @@ const Overview = () => {
   }, []);
 
   const fetchProjects = async () => {
+    setLoading(true);
     let { data: projects, error } = await supabase
       .from("project")
       .select(
@@ -37,6 +45,7 @@ const Overview = () => {
     if (error) {
       console.error("Error fetching projects:", error);
     } else {
+      setLoading(false);
       setProjects(projects);
     }
   };
@@ -67,10 +76,12 @@ const Overview = () => {
   };
   useEffect(() => {
     const fetchData = async () => {
+      setLoadingUser(true);
       const { data: User, error } = await supabase.from("User").select("name");
       if (error) {
         console.error("Error fetching user data:", error);
       } else {
+        setLoadingUser(false);
         setData(User);
       }
     };
@@ -154,6 +165,13 @@ const Overview = () => {
       ),
     },
   ];
+  if (loading || loadingUser) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Spin size="large" />
+      </div>
+    );
+  }
 
   return (
     <div
@@ -164,14 +182,14 @@ const Overview = () => {
       }}
     >
       <Row className="w-full mb-4" gutter={[16, 16]}>
-        <OverviewCard/>
+        <OverviewCard />
         <Col xs={24} sm={24} md={12} lg={12}>
-          <div style={{ height: '100%' }}>
+          <div style={{ height: "100%" }}>
             <IncomeExpensesChart />
           </div>
         </Col>
         <Col xs={24} sm={24} md={12} lg={12}>
-          <div style={{ height: '100%' }}>
+          <div style={{ height: "100%" }}>
             <PredictionCard />
           </div>
         </Col>
@@ -200,11 +218,6 @@ const Overview = () => {
             >
               Recent Projects
             </Typography.Title>
-            <Space>
-              <Button>Select Date</Button>
-              <Button>Filters</Button>
-              <Button>Edit</Button>
-            </Space>
           </div>
 
           <Table
@@ -212,6 +225,7 @@ const Overview = () => {
             dataSource={projects}
             rowKey="project_id"
             bordered
+            scroll={{ x: true }}
             pagination={{
               pageSize: 7,
               hideOnSinglePage: true,
