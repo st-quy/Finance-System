@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useEffect, useState } from "react"; // useState와 useEffect 추가
 import { ArrowUpOutlined } from "@ant-design/icons";
 
 const styles = {
@@ -16,20 +17,35 @@ const styles = {
 };
 
 export function PredictionCard() {
-  const [predictions, setPredictions] = React.useState(null);
 
-  // React의 useEffect 훅을 사용하여 Flask API에서 데이터를 가져옵니다.
-  React.useEffect(() => {
-    fetch("http://127.0.0.1:5000/api/predict")
-      .then((response) => response.json())
-      .then((data) => setPredictions(data))
-      .catch((error) => console.error("Error fetching data:", error));
-  }, []);
+  const [predictions, setPredictions] = useState(null); // 데이터 상태 관리
+  const [loading, setLoading] = useState(true);  // 로딩 상태 관리
+  const [error, setError] = useState(null);  // 에러 상태 관리
 
-  console.log(predictions);
+  // 데이터 가져오기
+  useEffect(() => {
+    fetch("http://127.0.0.1:5000/api/predict", {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      mode: 'cors', // CORS 설정
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log('Success:', data);
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+  }, []);  // 컴포넌트가 처음 렌더링될 때만 실행됨
 
-  if (!predictions) {
-    return <div>Loading...</div>;
+  if (loading) {
+    return <div>Loading...</div>;  // 데이터가 로드되기 전까지 'Loading...' 표시
+  }
+
+  if (error) {
+    return <div>{error}</div>;  // 에러가 발생하면 에러 메시지 표시
   }
 
   return (
@@ -47,8 +63,22 @@ export function PredictionCard() {
             <div className="flex gap-2 items-center">
               <ArrowUpOutlined className="text-2xl" />
               <div>
-                <span className={styles.profitLabel}>Profit</span>
-                <span className={styles.profitValue}>$4,251</span>
+                <span className={styles.profitLabel}>1 Month Prediction</span>
+                <span className={styles.profitValue}>${predictions["1_month"].toFixed(2)}</span>
+              </div>
+            </div>
+            <div className="flex gap-2 items-center">
+              <ArrowUpOutlined className="text-2xl" />
+              <div>
+                <span className={styles.profitLabel}>2 Months Prediction</span>
+                <span className={styles.profitValue}>${predictions["2_months"].toFixed(2)}</span>
+              </div>
+            </div>
+            <div className="flex gap-2 items-center">
+              <ArrowUpOutlined className="text-2xl" />
+              <div>
+                <span className={styles.profitLabel}>3 Months Prediction</span>
+                <span className={styles.profitValue}>${predictions["3_months"].toFixed(2)}</span>
               </div>
             </div>
           </div>
