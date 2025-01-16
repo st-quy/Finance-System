@@ -17,6 +17,7 @@ const styles = {
 };
 
 export function PredictionCard() {
+
   const [predictions, setPredictions] = useState(null); // 데이터 상태 관리
   const [loading, setLoading] = useState(true);  // 로딩 상태 관리
   const [error, setError] = useState(null);  // 에러 상태 관리

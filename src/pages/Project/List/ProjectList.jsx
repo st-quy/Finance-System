@@ -87,7 +87,6 @@ const ProjectList = () => {
           filters.inProcess
             ? !project.end_date // 진행 중인 경우 end_date가 없음을 필터링
             : project.end_date // 완료된 경우 end_date가 있는 항목 필터링
-
       );
     }
 
@@ -202,9 +201,10 @@ const ProjectList = () => {
       <Header
         style={{
           backgroundColor: "#1C2951",
-
-          padding: "0 19px",
-          width: "97%",
+          borderRadius: "10px",
+          padding: "20px 30px",
+          height: "200px",
+          width: "100%",
           margin: "0 auto",
         }}
       >
@@ -221,6 +221,7 @@ const ProjectList = () => {
           style={{
 
             marginBottom: "20px",
+            marginTop: "20px",
             boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
             borderRadius: "8px",
           }}
@@ -281,6 +282,7 @@ const ProjectList = () => {
                 type="primary"
                 icon={<PlusOutlined />}
                 onClick={() => navigate("/projects/create")}
+
                 style={{
                   width: "160px",
                   height: "40px",
@@ -292,40 +294,34 @@ const ProjectList = () => {
               >
                 Create Project
               </Button>
-              <Button
-                style={{
-                  width: "160px",
-                  height: "40px",
-                  borderRadius: "8px",
-                }}
-                onClick={() => setIsFilterModalVisible(true)}
-              >
-                Filters
-              </Button>
+              {selectedProjects.length != 0 && (
+                <Button
+                  color="danger"
+                  variant="outlined"
+                  icon={<DeleteOutlined />}
+                  onClick={handleBulkDelete}
+                > {selectedProjects.length}
+                </Button>
+              )}
             </Space>
           </Space>
         </Card>
-        <Card
-          bordered={false}
+        <Table
+          columns={columns}
+          dataSource={projects}
+          rowKey="project_id"
+          pagination={{ pageSize: 10 }}
+          scroll={{ x: true }}
           style={{
-            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-            borderRadius: "8px",
+            backgroundColor: "#fff",
+            borderRadius: "10px",
+            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
           }}
-        >
-          <Table
-            columns={columns}
-            dataSource={projects}
-            rowKey="project_id"
-            scroll={{ x: true }}
-            bordered
-            pagination={{
-              pageSize: 10,
-              showSizeChanger: false,
-            }}
-          />
-        </Card>
+        />
       </Content>
-
+      <Footer style={{ textAlign: "center" }}>
+        Project Management ©2025 Created by Quy, Bui Phuoc Khang, Lee Hyewon, Park Minhuyp, Gu Seonghee
+      </Footer>
       <Modal
         title="Filter Projects"
         open={isFilterModalVisible}

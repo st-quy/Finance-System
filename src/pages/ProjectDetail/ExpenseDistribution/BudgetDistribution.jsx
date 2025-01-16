@@ -110,7 +110,11 @@ const BudgetDistribution = ({projectId}) => {
     }
 
     return (
-        <div className="w-full flex flex-col px-9 py-5 bg-white rounded-lg border shadow-sm border-zinc-200 max-md:px-5">
+        <div className="w-full flex-col px-9 py-5 border border-solid border-zinc-200"
+        style={{
+            backgroundColor: "#fff",
+            borderRadius: "10px",
+        }}>
             <div className="text-sm font-bold text-zinc-500">Distribution of Budget</div>
             <div className="flex mt-2.5 w-full">
                 <div className="flex w-full rounded-2xl overflow-hidden h-8">

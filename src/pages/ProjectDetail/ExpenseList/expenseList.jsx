@@ -257,9 +257,9 @@ const ListView = ({ projectId }) => {
         selectedCount={selectedItems.size}
       />
 
-      <div className="w-full overflow-x-auto rounded-lg border border-zinc-200 shadow-lg">
+      <div className="w-full overflow-x-auto rounded-lg border border-solid border-zinc-200">
         <div className="min-w-[1024px]">
-          <div className="flex w-full bg-white border-b border-zinc-200 text-sm font-medium text-slate-500">
+          <div className="flex w-full bg-white border border-solid border-zinc-200 text-sm font-medium text-slate-500">
             <div className="flex items-center p-4 w-14">
               <input
                 type="checkbox"

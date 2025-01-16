@@ -37,7 +37,7 @@ const ProjectSummary = ({ projectId }) => {
 
   useEffect(() => {
     async function fetchProjects() {
-      let { data: projects, error } = await supabase.from("project").select("*").eq("project_id", projectId );
+      let { data: projects, error } = await supabase.from("project").select("*").eq("project_id", projectId);
       if (error) {
         console.error("Error fetching projects:", error);
       } else {
@@ -93,7 +93,7 @@ const ProjectSummary = ({ projectId }) => {
   ];
 
   return (
-    <div className="rounded-lg flex flex-col p-6 w-full bg-white border-b border-slate-200 max-md:px-5 max-md:max-w-full">
+    <div className="rounded-lg flex-col p-6 w-full bg-white border border-solid border-zinc-200">
       <div className="px-8 pt-32 pb-8 w-full rounded-2xl max-md:px-5 max-md:pt-24 max-md:max-w-full bg-cover bg-center"
         style={{ backgroundImage: `url(${bg})` }}
       >
@@ -140,7 +140,7 @@ const ProjectSummary = ({ projectId }) => {
                     TRACKED TIME
                   </div>
                   <div className="mt-1 font-medium text-black">
-                    {dayjs().diff(projects.start_date, "day") } days
+                    {dayjs().diff(projects.start_date, "day")} days
                   </div>
                 </div>
               </div>

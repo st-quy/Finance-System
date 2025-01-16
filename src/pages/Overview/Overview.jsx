@@ -184,12 +184,22 @@ const Overview = () => {
       <Row className="w-full mb-4" gutter={[16, 16]}>
         <OverviewCard />
         <Col xs={24} sm={24} md={12} lg={12}>
-          <div style={{ height: "100%" }}>
+          <div style={{ 
+            height: "100%",
+            backgroundColor: "#fff",
+            borderRadius: "10px",
+            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+            }}>
             <IncomeExpensesChart />
           </div>
         </Col>
         <Col xs={24} sm={24} md={12} lg={12}>
-          <div style={{ height: "100%" }}>
+          <div style={{ 
+            height: "100%",
+            backgroundColor: "#fff",
+            borderRadius: "10px",
+            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+            }}>
             <PredictionCard />
           </div>
         </Col>

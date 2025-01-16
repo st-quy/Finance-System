@@ -204,7 +204,7 @@ const DashboardStats = () => {
   };
 
   const baseCardStyles =
-    "flex overflow-hidden relative flex-col flex-1 shrink bg-white rounded-2xl border border-solid shadow-lg basis-0 border-zinc-200 min-w-[240px]";
+    "flex-1 bg-white min-w-[240px]";
   const contentStyles = "flex z-0 flex-col px-5 pt-5 pb-4 w-full";
   const headerStyles = "flex gap-4 items-start w-full";
   const titleContainerStyles = "flex flex-col flex-1 shrink basis-4";
@@ -226,7 +226,10 @@ const DashboardStats = () => {
       {statsData.map((stat, index) => {
         const styles = variantStyles[stat.variant];
         return (
-          <div key={index} className={baseCardStyles}>
+          <div key={index} className={baseCardStyles} 
+          style={{
+            borderRadius: "10px",
+            }}>
             <div className={contentStyles}>
               <div className={headerStyles}>
                 <div className={titleContainerStyles}>
