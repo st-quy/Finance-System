@@ -23,7 +23,7 @@ export function PredictionCard() {
 
   // 데이터 가져오기
   useEffect(() => {
-    fetch("http://127.0.0.1:5000/api/predict", {
+    fetch("https://finance-system-lstm.onrender.com/api/predict", {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
