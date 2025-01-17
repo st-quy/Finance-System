@@ -184,6 +184,13 @@ const DashboardStats = () => {
     ]);
   };
 
+  const cardIcons = {
+    cyan: "https://cdn.builder.io/api/v1/image/assets/TEMP/8cf2b55e05bc254ba94a352858130d558f1bcfbcc043dcf1d627d8bcd4833a58",
+    indigo: "https://cdn.builder.io/api/v1/image/assets/TEMP/9ebff3a9147747dd69efc0e7705093337c2d0166648d5b13f69f8fc858fb3693",
+    rose: "https://cdn.builder.io/api/v1/image/assets/TEMP/2391184436fe032b8051e1f08bdb520a0a2057399113b437a2b74962618e010b",
+    orange: "https://cdn.builder.io/api/v1/image/assets/TEMP/50f53249945e64edc353fa6e06e2a9bf04ce0fdf25cec1123e5cfca204e4a911"
+  };
+
   const variantStyles = {
     cyan: {
       bg: "bg-cyan-50",
@@ -203,53 +210,59 @@ const DashboardStats = () => {
     },
   };
 
-  const baseCardStyles =
-    "flex-1 bg-white min-w-[240px]";
-  const contentStyles = "flex z-0 flex-col px-5 pt-5 pb-4 w-full";
-  const headerStyles = "flex gap-4 items-start w-full";
-  const titleContainerStyles = "flex flex-col flex-1 shrink basis-4";
-  const titleStyles = "text-base font-medium tracking-normal text-slate-500";
-  const valueStyles =
-    "mt-2 text-2xl font-semibold tracking-normal leading-none text-neutral-950";
-  const iconContainerStyles =
-    "flex overflow-hidden gap-2 justify-center items-center px-2 w-10 h-10 min-h-[40px] rounded-[100px]";
-  const comparisonContainerStyles =
-    "flex gap-1 items-center mt-4 w-full text-sm tracking-normal leading-none";
-  const comparisonValueStyles =
-    "flex gap-0.5 items-center self-stretch my-auto font-bold text-teal-500 whitespace-nowrap";
-  const comparisonTextStyles =
-    "self-stretch my-auto text-[10px] text-slate-500";
-  const borderStyles = "flex absolute left-0 top-5 z-0 w-1.5 h-6 min-h-[24px]";
-
   return (
-    <div className="flex flex-wrap gap-6 items-start w-full">
+    <div className="flex flex-wrap gap-6 items-start">
       {statsData.map((stat, index) => {
         const styles = variantStyles[stat.variant];
         return (
-          <div key={index} className={baseCardStyles} 
-          style={{
-            borderRadius: "10px",
-            }}>
-            <div className={contentStyles}>
-              <div className={headerStyles}>
-                <div className={titleContainerStyles}>
-                  <div className={titleStyles}>{stat.title}</div>
-                  <div className={valueStyles}>{stat.value}</div>
+          <div 
+            key={index}
+            className="flex overflow-hidden relative flex-col flex-1 shrink bg-white rounded-2xl border border-solid border-zinc-200 min-w-[240px]"
+            role="region"
+            aria-label={stat.title}
+          >
+            <div className="flex z-0 flex-col px-5 pt-5 pb-4 w-full">
+              <div className="flex gap-4 items-start w-full">
+                <div className="flex flex-col flex-1 shrink basis-4">
+                  <div className="text-base tracking-normal text-slate-500">
+                    {stat.title}
+                  </div>
+                  <div className="mt-2 text-xl font-semibold tracking-normal leading-none text-neutral-950">
+                    {stat.value}
+                  </div>
                 </div>
-                <div className={`${iconContainerStyles} ${styles.bg}`}>
-                  {stat.icon}
+                <div className={`flex overflow-hidden gap-2 justify-center items-center px-2 w-10 h-10 ${styles.bg} min-h-[40px] rounded-[100px]`}>
+                  <img
+                    loading="lazy"
+                    src={cardIcons[stat.variant]}
+                    alt=""
+                    className="object-contain self-stretch my-auto aspect-square w-[18px]"
+                  />
                 </div>
               </div>
-              <div className={comparisonContainerStyles}>
-                <div className={comparisonValueStyles}>
-                  <div className="self-stretch my-auto">{stat.comparison}</div>
-                </div>
-                <div className={comparisonTextStyles}>
-                  {stat.comparisonText}
-                </div>
+              <div className="flex gap-1 items-center mt-4 w-full text-sm tracking-normal leading-none">
+                {stat.title !== "Project In Progress" ? (
+                  <>
+                    <div className="flex gap-0.5 items-center self-stretch my-auto font-bold text-teal-500 whitespace-nowrap">
+                      <div className="self-stretch my-auto">{stat.comparison}</div>
+                    </div>
+                    <div className="self-stretch my-auto text-[11px] text-slate-500">
+                      {stat.comparisonText}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="gap-0.5 self-stretch my-auto font-bold whitespace-nowrap">
+                      {stat.comparison}
+                    </div>
+                    <div className="self-stretch my-auto text-[11px] text-slate-500">
+                      {stat.comparisonText}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
-            <div className={`${borderStyles} ${styles.border}`} />
+            <div className={`flex absolute left-0 top-5 z-0 w-1.5 h-6 ${styles.border} min-h-[24px]`} />
           </div>
         );
       })}

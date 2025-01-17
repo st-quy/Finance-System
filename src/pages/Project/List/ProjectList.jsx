@@ -1,5 +1,16 @@
 import { createClient } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
+import { HiAdjustmentsHorizontal } from "react-icons/hi2";
+import bg1 from "../../../assets/Images/MessGradient/mess1.png";
+import bg2 from "../../../assets/Images/MessGradient/mess2.png";
+import bg3 from "../../../assets/Images/MessGradient/mess3.png";
+import bg4 from "../../../assets/Images/MessGradient/mess4.png";
+import bg5 from "../../../assets/Images/MessGradient/mess5.png";
+import bg6 from "../../../assets/Images/MessGradient/mess6.png";
+
+const backgrounds = [bg1, bg2, bg3, bg4, bg5, bg6];
+const bg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+
 import {
   Layout,
   Table,
@@ -18,15 +29,25 @@ import {
 import {
   EyeOutlined,
   DeleteOutlined,
-  SearchOutlined,
+  DeleteFilled,
   PlusOutlined,
   EditOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 
+const { Search } = Input;
+
 const { Header, Content, Footer } = Layout;
 const { Option } = Select;
 const { RangePicker } = DatePicker;
+
+const PROJECT_TYPES = [
+  "IOS",
+  "Android",
+  "WebApp",
+  "Tech Upgrade",
+  "AI"
+];
 
 const ProjectList = () => {
   const navigate = useNavigate();
@@ -82,8 +103,8 @@ const ProjectList = () => {
     if (filters.inProcess !== null) {
       projects = projects.filter((project) =>
         filters.inProcess
-          ? !project.end_date 
-          : project.end_date 
+          ? !project.end_date
+          : project.end_date
       );
     }
 
@@ -184,12 +205,14 @@ const ProjectList = () => {
       key: "select",
       align: "center",
       render: (_, record) => (
-        <Checkbox
-          onChange={(e) =>
-            handleCheckboxChange(record.project_id, e.target.checked)
-          }
-          checked={selectedProjects.includes(record.project_id)}
-        />
+        <div onClick={(e) => e.stopPropagation()}>
+          <Checkbox
+            onChange={(e) =>
+              handleCheckboxChange(record.project_id, e.target.checked)
+            }
+            checked={selectedProjects.includes(record.project_id)}
+          />
+        </div>
       ),
     },
     {
@@ -235,11 +258,7 @@ const ProjectList = () => {
       key: "action",
       align: "center",
       render: (_, record) => (
-        <Space>
-          <Button
-            onClick={() => navigate(`/projects/detail/${record.project_id}`)}
-            icon={<EyeOutlined />}
-          ></Button>
+        <Space onClick={(e) => e.stopPropagation()}>
           <Button
             icon={<DeleteOutlined />}
             danger
@@ -272,14 +291,14 @@ const ProjectList = () => {
         }}
       >
         {/* 배경 패턴 */}
-        <div
+        <div className="border border-solid border-zinc-200"
           style={{
             position: "absolute",
             top: "0",
             left: "0",
             width: "100%",
             height: "100%",
-            background: "radial-gradient(circle at top left, #2A3E70, transparent)",
+            background: " #fff",
             zIndex: 0,
           }}
         ></div>
@@ -288,6 +307,10 @@ const ProjectList = () => {
             position: "relative",
             zIndex: 1,
             flex: "1",
+            backgroundImage: `url(${bg})`,
+            backgroundSize: "100%",
+            padding: "40px",
+            borderRadius: "10px",
           }}
         >
           <Typography.Title
@@ -297,16 +320,18 @@ const ProjectList = () => {
               margin: "0",
               fontSize: "28px",
               fontWeight: "bold",
+              textShadow: "2px 2px 4px rgba(0, 0, 0, 0.3)"  // Added text shadow
             }}
           >
             Project Management
           </Typography.Title>
           <Typography.Text
             style={{
-              color: "#dcdcdc",
+              color: "#fff",
               marginTop: "10px",
               fontSize: "13px",
               display: "block",
+              textShadow: "1px 1px 2px rgba(0, 0, 0, 0.3)"  // Added text shadow
             }}
           >
             Manage your projects efficiently
@@ -324,7 +349,7 @@ const ProjectList = () => {
           <Typography.Title
             level={4}
             style={{
-              color: "#fff",
+              color: "rgb(70, 70, 70)",
               margin: "0 0 10px",
               fontSize: "20px",
               fontWeight: "bold",
@@ -336,113 +361,107 @@ const ProjectList = () => {
             style={{
               margin: "0",
               fontSize: "12px",
-              color: "#dcdcdc",
+              fonrWeight: "medium",
+              color: "rgb(70, 70, 70)",
             }}
           >
-            Project Management is a comprehensive solution designed to streamline workflows and enhance team collaboration. 
-            It provides robust tools for project planning, task assignment, progress tracking, and real-time communication. 
-            With its user-friendly interface and powerful features, it helps teams stay organized, meet deadlines, and achieve 
+            Project Management is a comprehensive solution designed to streamline workflows and enhance team collaboration.
+            It provides robust tools for project planning, task assignment, progress tracking, and real-time communication.
+            With its user-friendly interface and powerful features, it helps teams stay organized, meet deadlines, and achieve
             their goals efficiently.
           </Typography.Paragraph>
         </div>
       </Header>
 
       <Content style={{ padding: "20px" }}>
-        <Card
-          bordered={false}
+        <Space
           style={{
-            marginBottom: "20px",
-            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-            borderRadius: "8px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            width: "100%",
+            gap: "16px",
+            marginBottom: "16px",
           }}
+          wrap
         >
-          <Space
+          <div
             style={{
               display: "flex",
-              justifyContent: "space-between",
               alignItems: "center",
-              width: "100%",
               gap: "16px",
+              width: "400px",
             }}
-            wrap
           >
-            <div
+            <Search
+              placeholder="Search projects by name"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onSearch={(e) => e.key === "Enter" && handleSearch()}
+              allowClear
+              enterButton="Search"
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0",
-                border: "1px solid #ccc",
-                borderRadius: "8px",
-                overflow: "hidden",
+                '.ant-input': {
+                  height: '40px',
+                },
+                '.ant-input-search-button': {
+                  height: '40px',
+                },
+                '.ant-input-group-addon': {
+                  height: '40px',
+                },
               }}
+              size="large"
+            />
+          </div>
+          <Space style={{ gap: "16px" }} wrap>
+            <Button
+              icon={<HiAdjustmentsHorizontal />}
+              onClick={() => setIsFilterModalVisible(true)}
+              className=" h-10 px-3 bg-white rounded-xl border border-solid border-zinc-200 text-sm font-medium text-slate-500"
+
             >
-              <Input
-                placeholder="Search by project name"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-                style={{
-                  flex: 1,
-                  border: "none",
-                  padding: "8px 12px",
-                  minWidth: "10rem",
-                  height: "33px",
-                }}
-                prefix={<SearchOutlined style={{ color: "rgba(0,0,0,0.45)" }} />}
-              />
-              <button
-                onClick={handleSearch}
-                style={{
-                  backgroundColor: "#4C0C0C0",
-                  color: "#000000",
-                  border: "none",
-                  padding: "8px 16px",
-                  cursor: "pointer",
-                  height: "33px",
-                }}
-              >
-                Search
-              </button>
-            </div>
-            <Space style={{ gap: "16px" }} wrap>
-              <Button
-                icon={<SearchOutlined />}
-                onClick={() => setIsFilterModalVisible(true)}
-              >
-                Filter
-              </Button>
-              <Button
-                icon={<PlusOutlined />}
-                onClick={() => navigate("/projects/create")}
-                style={{
-                  backgroundColor: "#ff8c00",
-                  borderColor: "#ff8c00",    
-                  color: "#fff",            
-                }}
-              >
-                Add
-              </Button>
-              <Button
-                type="danger"
-                icon={<DeleteOutlined />}
-                onClick={handleBulkDelete}
-                disabled={selectedProjects.length === 0}
-                style={{
-                  backgroundColor: "#fff", 
-                  borderColor: "#ff4d4f",
-                  color: "#ff4d4f",
-                }}
-              >
-              </Button>
-            </Space>
+              Filter
+            </Button>
+            <Button
+              color="primary"
+              variant="solid"
+              icon={<PlusOutlined />}
+              onClick={() => navigate("/projects/create")}
+              className=" h-10 px-3 rounded-xl text-sm font-medium"
+            >
+              Add
+            </Button>
+            {selectedProjects.length != 0 && (<Button
+              color="danger"
+              variant="filled"
+              icon={<DeleteFilled />}
+              onClick={handleBulkDelete}
+              disabled={selectedProjects.length === 0}
+            >{selectedProjects.length}</Button>)}
           </Space>
-        </Card>
+        </Space>
         <Table
           columns={columns}
           dataSource={projects}
           rowKey="project_id"
-          pagination={{ pageSize: 10 }}
-          scroll={{x: true}}
+          pagination={{
+            position: ['bottomCenter'],
+            pageSize: 10
+          }}
+          scroll={{ x: true }}
+          onRow={(record) => ({
+            onClick: (e) => {
+              // Only navigate if not clicking on checkbox or action buttons
+              if (!e.target.closest('.ant-checkbox') && !e.target.closest('.ant-btn')) {
+                navigate(`/projects/detail/${record.project_id}`);
+              }
+            },
+            style: {
+              cursor: 'pointer',
+            }
+          })}
+          className="w-full bg-white border border-solid border-zinc-200"
         />
       </Content>
       <Footer style={{ textAlign: "center" }}>
@@ -457,9 +476,9 @@ const ProjectList = () => {
         <Form onFinish={handleFilterApply}>
           <Form.Item label="Project Type" name="projectType">
             <Select allowClear>
-              <Option value="type1">Type 1</Option>
-              <Option value="type2">Type 2</Option>
-              <Option value="type3">Type 3</Option>
+              {PROJECT_TYPES.map(type => (
+                <Option key={type} value={type}>{type}</Option>
+              ))}
             </Select>
           </Form.Item>
           <Form.Item label="Date Range" name="dateRange">

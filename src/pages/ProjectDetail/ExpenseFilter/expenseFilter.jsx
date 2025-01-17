@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { PlusOutlined, DeleteFilled } from "@ant-design/icons";
+import { HiAdjustmentsHorizontal } from "react-icons/hi2";
+
 import { DatePicker, Button } from "antd";
 import dayjs from 'dayjs';
 
@@ -110,18 +112,10 @@ const ExpenseFilter = ({ onFilterChange, onAddExpense, onDeleteSelected, selecte
 
                     <Button
                         onClick={() => setShowFilters(!showFilters)}
-                        className="flex gap-2 justify-center items-center h-10 px-3 bg-white rounded-xl border border-solid border-zinc-200"
+                        icon={<HiAdjustmentsHorizontal />}
+                        className=" h-10 px-3 bg-white rounded-xl border border-solid border-zinc-200 text-sm font-medium text-slate-500"
                     >
-                        <div className="flex justify-center items-center w-5 h-5">
-                            <img
-                                src="https://cdn.builder.io/api/v1/image/assets/TEMP/c9288acd9b7c89d855840deea9f706790cd68946344199d194ee0ee43a762c5b"
-                                alt=""
-                                className="w-4 h-4 object-contain"
-                            />
-                        </div>
-                        <span className="text-sm font-medium tracking-normal leading-none text-slate-500">
-                            Filters {selectedCategories.length > 0 && `(${selectedCategories.length})`}
-                        </span>
+                        Filters
                     </Button>
 
                     {selectedCount > 0 && (

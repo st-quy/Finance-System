@@ -6,9 +6,9 @@ import dayjs from "dayjs";
 import bg1 from "../../../assets/Images/MessGradient/mess1.png";
 import bg2 from "../../../assets/Images/MessGradient/mess2.png";
 import bg3 from "../../../assets/Images/MessGradient/mess3.png";
-import bg4 from "../../../assets/Images/MessGradient/mess3.png";
-import bg5 from "../../../assets/Images/MessGradient/mess3.png";
-import bg6 from "../../../assets/Images/MessGradient/mess3.png";
+import bg4 from "../../../assets/Images/MessGradient/mess4.png";
+import bg5 from "../../../assets/Images/MessGradient/mess5.png";
+import bg6 from "../../../assets/Images/MessGradient/mess6.png";
 import { DownloadOutlined } from "@ant-design/icons";
 
 const backgrounds = [bg1, bg2, bg3, bg4, bg5, bg6];
@@ -151,7 +151,7 @@ const ProjectSummary = ({ projectId }) => {
             icon={<DownloadOutlined />}
             onClick={showModal}
           >
-            Download Report
+            Generate Report
           </Button>
         </div>
       </div>
