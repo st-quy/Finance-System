@@ -37,7 +37,10 @@ const ProjectSummary = ({ projectId }) => {
 
   useEffect(() => {
     async function fetchProjects() {
-      let { data: projects, error } = await supabase.from("project").select("*").eq("project_id", projectId);
+      let { data: projects, error } = await supabase
+      .from("project")
+      .select("*")
+      .eq("project_id", projectId);
       if (error) {
         console.error("Error fetching projects:", error);
       } else {

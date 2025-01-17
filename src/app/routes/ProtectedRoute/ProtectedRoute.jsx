@@ -36,9 +36,9 @@ const nlpModel = genAI.getGenerativeModel({
 });
 
 // Initialize Supabase client
-const supabaseUrl = "https://dilsljuynpaogrrxqolf.supabase.co";
+const supabaseUrl = "https://vsmbidgenzscyzgxgede.supabase.co";
 const supabaseKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRpbHNsanV5bnBhb2dycnhxb2xmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYyMTc0MDAsImV4cCI6MjA1MTc5MzQwMH0.4hvawiI87VmdXSXYlxKnYp7nkn7emE4rn6Y3hWTE4LU";
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZzbWJpZGdlbnpzY3l6Z3hnZWRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzU4MDY3OTAsImV4cCI6MjA1MTM4Mjc5MH0.mJqtmjFDArnBy3dUFDS2hjyt8aXEf2WAMjOBbmVVAAo";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Database Schema for AI
@@ -61,8 +61,8 @@ b. Project:
 Primary Key: project_id (auto-incremented).
 Fields:
 project_name: Name of the project.
-project_value: Monetary value of the project or revenue from the project.
-project_type: Category of the project.
+project_value: Monetary value of the project, or revenue from the project.
+project_type: Category of the project (Construction, Research, Marketing, Education, Software).
 start_date: Project start date.
 end_date: (Optional) Project end date.
 user_id: References the managing user (User table).
