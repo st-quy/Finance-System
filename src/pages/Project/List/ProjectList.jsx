@@ -1,5 +1,16 @@
 import { createClient } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
+import { HiAdjustmentsHorizontal } from "react-icons/hi2";
+import bg1 from "../../../assets/Images/MessGradient/mess1.png";
+import bg2 from "../../../assets/Images/MessGradient/mess2.png";
+import bg3 from "../../../assets/Images/MessGradient/mess3.png";
+import bg4 from "../../../assets/Images/MessGradient/mess4.png";
+import bg5 from "../../../assets/Images/MessGradient/mess5.png";
+import bg6 from "../../../assets/Images/MessGradient/mess6.png";
+
+const backgrounds = [bg1, bg2, bg3, bg4, bg5, bg6];
+const bg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+
 import {
   Layout,
   Table,
@@ -13,21 +24,30 @@ import {
   Form,
   Select,
   DatePicker,
-
-
+  Checkbox,
 } from "antd";
 import {
   EyeOutlined,
   DeleteOutlined,
-  SearchOutlined,
+  DeleteFilled,
   PlusOutlined,
   EditOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 
+const { Search } = Input;
+
 const { Header, Content, Footer } = Layout;
 const { Option } = Select;
 const { RangePicker } = DatePicker;
+
+const PROJECT_TYPES = [
+  "IOS",
+  "Android",
+  "WebApp",
+  "Tech Upgrade",
+  "AI"
+];
 
 const ProjectList = () => {
   const navigate = useNavigate();
@@ -41,7 +61,7 @@ const ProjectList = () => {
     inProcess: null,
   });
   const [inProcess, setInProcess] = useState(false);
-
+  const [selectedProjects, setSelectedProjects] = useState([]);
 
   const supabaseUrl = "https://dilsljuynpaogrrxqolf.supabase.co";
   const supabaseKey =
@@ -81,12 +101,10 @@ const ProjectList = () => {
     }
 
     if (filters.inProcess !== null) {
-
-      projects = projects.filter(
-        (project) =>
-          filters.inProcess
-            ? !project.end_date // 진행 중인 경우 end_date가 없음을 필터링
-            : project.end_date // 완료된 경우 end_date가 있는 항목 필터링
+      projects = projects.filter((project) =>
+        filters.inProcess
+          ? !project.end_date
+          : project.end_date
       );
     }
 
@@ -131,10 +149,73 @@ const ProjectList = () => {
     });
   };
 
+  const handleBulkDelete = async () => {
+    Modal.confirm({
+      title: "Are you sure?",
+      content: "This action will permanently delete the selected projects.",
+      okText: "Yes, delete them",
+      cancelText: "Cancel",
+      onOk: async () => {
+        const { error } = await supabase
+          .from("project")
+          .delete()
+          .in("project_id", selectedProjects);
+
+        if (error) {
+          message.error("Failed to delete the selected projects.");
+          console.error("Error deleting projects:", error);
+        } else {
+          message.success("Selected projects deleted successfully.");
+          setSelectedProjects([]);
+          fetchProjects();
+        }
+      },
+    });
+  };
+
+  const handleCheckboxChange = (projectId, isChecked) => {
+    setSelectedProjects((prevSelected) =>
+      isChecked
+        ? [...prevSelected, projectId]
+        : prevSelected.filter((id) => id !== projectId)
+    );
+  };
 
   const columns = [
     {
-
+      title: (
+        <Checkbox
+          onChange={(e) => {
+            const isChecked = e.target.checked;
+            setSelectedProjects(
+              isChecked ? projects.map((project) => project.project_id) : []
+            );
+          }}
+          checked={
+            selectedProjects.length > 0 &&
+            selectedProjects.length === projects.length
+          }
+          indeterminate={
+            selectedProjects.length > 0 &&
+            selectedProjects.length < projects.length
+          }
+        />
+      ),
+      dataIndex: "select",
+      key: "select",
+      align: "center",
+      render: (_, record) => (
+        <div onClick={(e) => e.stopPropagation()}>
+          <Checkbox
+            onChange={(e) =>
+              handleCheckboxChange(record.project_id, e.target.checked)
+            }
+            checked={selectedProjects.includes(record.project_id)}
+          />
+        </div>
+      ),
+    },
+    {
       title: "Project ID",
       dataIndex: "project_id",
       key: "project_id",
@@ -177,11 +258,7 @@ const ProjectList = () => {
       key: "action",
       align: "center",
       render: (_, record) => (
-        <Space>
-          <Button
-            onClick={() => navigate(`/projects/detail/${record.project_id}`)}
-            icon={<EyeOutlined />}
-          ></Button>
+        <Space onClick={(e) => e.stopPropagation()}>
           <Button
             icon={<DeleteOutlined />}
             danger
@@ -204,166 +281,218 @@ const ProjectList = () => {
           borderRadius: "10px",
           padding: "20px 30px",
           height: "200px",
-          width: "100%",
+          width: "97%",
           margin: "0 auto",
+          position: "relative",
+          overflow: "hidden",
+          display: "flex", // 플렉스 레이아웃 추가
+          alignItems: "center",
+          justifyContent: "space-between",
         }}
       >
-        <Typography.Title
-          level={3}
-          style={{ color: "#fff", margin: "0", lineHeight: "64px" }}
-        >
-          Project Management
-        </Typography.Title>
-      </Header>
-      <Content style={{ padding: "20px" }}>
-        <Card
-          bordered={false}
+        {/* 배경 패턴 */}
+        <div className="border border-solid border-zinc-200"
           style={{
-
-            marginBottom: "20px",
-            marginTop: "20px",
-            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-            borderRadius: "8px",
+            position: "absolute",
+            top: "0",
+            left: "0",
+            width: "100%",
+            height: "100%",
+            background: " #fff",
+            zIndex: 0,
+          }}
+        ></div>
+        <div
+          style={{
+            position: "relative",
+            zIndex: 1,
+            flex: "1",
+            backgroundImage: `url(${bg})`,
+            backgroundSize: "100%",
+            padding: "40px",
+            borderRadius: "10px",
           }}
         >
-          <Space
+          <Typography.Title
+            level={3}
+            style={{
+              color: "#fff",
+              margin: "0",
+              fontSize: "28px",
+              fontWeight: "bold",
+              textShadow: "2px 2px 4px rgba(0, 0, 0, 0.3)"  // Added text shadow
+            }}
+          >
+            Project Management
+          </Typography.Title>
+          <Typography.Text
+            style={{
+              color: "#fff",
+              marginTop: "10px",
+              fontSize: "13px",
+              display: "block",
+              textShadow: "1px 1px 2px rgba(0, 0, 0, 0.3)"  // Added text shadow
+            }}
+          >
+            Manage your projects efficiently
+          </Typography.Text>
+        </div>
+        <div
+          style={{
+            position: "relative",
+            zIndex: 1,
+            flex: "1",
+            paddingLeft: "20px",
+            color: "#dcdcdc",
+          }}
+        >
+          <Typography.Title
+            level={4}
+            style={{
+              color: "rgb(70, 70, 70)",
+              margin: "0 0 10px",
+              fontSize: "20px",
+              fontWeight: "bold",
+            }}
+          >
+            Description
+          </Typography.Title>
+          <Typography.Paragraph
+            style={{
+              margin: "0",
+              fontSize: "12px",
+              fonrWeight: "medium",
+              color: "rgb(70, 70, 70)",
+            }}
+          >
+            Project Management is a comprehensive solution designed to streamline workflows and enhance team collaboration.
+            It provides robust tools for project planning, task assignment, progress tracking, and real-time communication.
+            With its user-friendly interface and powerful features, it helps teams stay organized, meet deadlines, and achieve
+            their goals efficiently.
+          </Typography.Paragraph>
+        </div>
+      </Header>
 
-            wrap
-
+      <Content style={{ padding: "20px" }}>
+        <Space
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            width: "100%",
+            gap: "16px",
+            marginBottom: "16px",
+          }}
+          wrap
+        >
+          <div
             style={{
               display: "flex",
-              justifyContent: "space-between",
               alignItems: "center",
-              width: "100%",
               gap: "16px",
+              width: "400px",
             }}
-            wrap
           >
-            <div
+            <Search
+              placeholder="Search projects by name"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onSearch={(e) => e.key === "Enter" && handleSearch()}
+              allowClear
+              enterButton="Search"
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0",
-                border: "1px solid #ccc",
-                borderRadius: "8px",
-                overflow: "hidden",
+                '.ant-input': {
+                  height: '40px',
+                },
+                '.ant-input-search-button': {
+                  height: '40px',
+                },
+                '.ant-input-group-addon': {
+                  height: '40px',
+                },
               }}
+              size="large"
+            />
+          </div>
+          <Space style={{ gap: "16px" }} wrap>
+            <Button
+              icon={<HiAdjustmentsHorizontal />}
+              onClick={() => setIsFilterModalVisible(true)}
+              className=" h-10 px-3 bg-white rounded-xl border border-solid border-zinc-200 text-sm font-medium text-slate-500"
+
             >
-              <Input
-                placeholder="Search by project name"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-                style={{
-                  flex: 1,
-                  border: "none",
-                  // padding: "8px 12px",
-                  minWidth: "10rem",
-                  height: "40px",
-                }}
-              />
-              <button
-                onClick={handleSearch}
-                style={{
-                  backgroundColor: "#4CAF50",
-                  color: "#fff",
-                  border: "none",
-                  padding: "8px 16px",
-                  cursor: "pointer",
-                  height: "40px",
-                }}
-              >
-                Search
-              </button>
-            </div>
-
-            <Space style={{ gap: "8px" }} wrap>
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={() => navigate("/projects/create")}
-
-                style={{
-                  width: "160px",
-                  height: "40px",
-                  borderRadius: "8px",
-                  backgroundColor: "#1C2951",
-                  color: "#fff",
-                  border: "none",
-                }}
-              >
-                Create Project
-              </Button>
-              {selectedProjects.length != 0 && (
-                <Button
-                  color="danger"
-                  variant="outlined"
-                  icon={<DeleteOutlined />}
-                  onClick={handleBulkDelete}
-                > {selectedProjects.length}
-                </Button>
-              )}
-            </Space>
+              Filter
+            </Button>
+            <Button
+              color="primary"
+              variant="solid"
+              icon={<PlusOutlined />}
+              onClick={() => navigate("/projects/create")}
+              className=" h-10 px-3 rounded-xl text-sm font-medium"
+            >
+              Add
+            </Button>
+            {selectedProjects.length != 0 && (<Button
+              color="danger"
+              variant="filled"
+              icon={<DeleteFilled />}
+              onClick={handleBulkDelete}
+              disabled={selectedProjects.length === 0}
+            >{selectedProjects.length}</Button>)}
           </Space>
-        </Card>
+        </Space>
         <Table
           columns={columns}
           dataSource={projects}
           rowKey="project_id"
-          pagination={{ pageSize: 10 }}
-          scroll={{ x: true }}
-          style={{
-            backgroundColor: "#fff",
-            borderRadius: "10px",
-            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+          pagination={{
+            position: ['bottomCenter'],
+            pageSize: 10
           }}
+          scroll={{ x: true }}
+          onRow={(record) => ({
+            onClick: (e) => {
+              // Only navigate if not clicking on checkbox or action buttons
+              if (!e.target.closest('.ant-checkbox') && !e.target.closest('.ant-btn')) {
+                navigate(`/projects/detail/${record.project_id}`);
+              }
+            },
+            style: {
+              cursor: 'pointer',
+            }
+          })}
+          className="w-full bg-white border border-solid border-zinc-200"
         />
       </Content>
       <Footer style={{ textAlign: "center" }}>
-        Project Management ©2025 Created by Quy, Bui Phuoc Khang, Lee Hyewon, Park Minhuyp, Gu Seonghee
+        Project Management ©2025 Created by Your Name
       </Footer>
       <Modal
         title="Filter Projects"
-        open={isFilterModalVisible}
+        visible={isFilterModalVisible}
         onCancel={() => setIsFilterModalVisible(false)}
         footer={null}
       >
         <Form onFinish={handleFilterApply}>
-          <Form.Item name="projectType" label="Project Type">
-            <Select placeholder="Select a type">
-              <Option value="Tech Upgrade">Tech Upgrade</Option>
-              <Option value="Android">Android</Option>
-              <Option value="IOS">IOS</Option>
-              <Option value="AI">AI</Option>
+          <Form.Item label="Project Type" name="projectType">
+            <Select allowClear>
+              {PROJECT_TYPES.map(type => (
+                <Option key={type} value={type}>{type}</Option>
+              ))}
             </Select>
           </Form.Item>
-          <Form.Item name="startDate" label="Start Date">
-            <RangePicker style={{ width: "100%" }} />
+          <Form.Item label="Date Range" name="dateRange">
+            <RangePicker />
           </Form.Item>
-          <Form.Item
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <Button
-              type={inProcess ? "primary" : "default"}
-              onClick={() => setInProcess(!inProcess)}
-              style={{
-                marginBottom: "16px",
-              }}
+          <Form.Item>
+            <Checkbox
+              checked={inProcess}
+              onChange={(e) => setInProcess(e.target.checked)}
             >
-              {inProcess ? "In Process Selected" : "In Process"}
-            </Button>
+              In Process
+            </Checkbox>
           </Form.Item>
-          <Form.Item
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
+          <Form.Item>
             <Button type="primary" htmlType="submit">
               Apply Filters
             </Button>

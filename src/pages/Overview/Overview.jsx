@@ -11,11 +11,7 @@ import {
   Row,
   Spin,
 } from "antd";
-import {
-  EyeOutlined,
-  DeleteOutlined,
-  LoadingOutlined,
-} from "@ant-design/icons";
+import {  DeleteOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../supabaseClient";
 import IncomeExpensesChart from "./Components/BarChart/IncomeAndExpensesChart";
@@ -146,11 +142,7 @@ const Overview = () => {
       title: "Action",
       key: "action",
       render: (_, record) => (
-        <Space>
-          <Button
-            icon={<EyeOutlined />}
-            onClick={() => handleViewProject(record.project_id)}
-          />
+        <Space onClick={(e) => e.stopPropagation()}>
           <Button
             icon={<DeleteOutlined />}
             danger
@@ -185,7 +177,7 @@ const Overview = () => {
         <OverviewCard />
         <Col xs={24} sm={24} md={12} lg={12}>
           <div style={{ 
-            height: "100%",
+            height: "97%",
             backgroundColor: "#fff",
             borderRadius: "10px",
             boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
@@ -231,6 +223,7 @@ const Overview = () => {
           </div>
 
           <Table
+          className="w-full"
             columns={columns}
             dataSource={projects}
             rowKey="project_id"
@@ -243,6 +236,14 @@ const Overview = () => {
               showQuickJumper: false,
               showPrevNextJumpers: false,
             }}
+            onRow={(record) => ({
+              onClick: (e) => {
+                if (!e.target.closest('.ant-btn')) {
+                  navigate(`/projects/detail/${record.project_id}`);
+                }
+              },
+              style: { cursor: 'pointer' }
+            })}
           />
         </Card>
       </div>

@@ -17,7 +17,7 @@ import {
 } from "@ant-design/icons";
 import { useSelector, useDispatch } from "react-redux";
 import { useEffect, useState, useRef } from "react";
-import logo from "@assets/Images/stunited.png";
+import logo from "@assets/Images/logo.png";
 import { logout } from "@app/features/auth/authSlice";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import ReactMarkdown from 'react-markdown';
@@ -430,7 +430,7 @@ export const ProtectedRoute = () => {
         breakpoint="lg"
       >
         <div className="flex justify-center items-center m-4 gap-2">
-          <img src={logo} alt="logo" className="w-14 h-14 cursor-pointer" />
+          <img src={logo} alt="logo" className="w-20 h-20 cursor-pointer" />
         </div>
         <div className="pl-4 text-sm font-semibold">MAIN MENU</div>
         <Divider className="m-2" />

@@ -1,145 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Space, Button, Pagination, Input, DatePicker, Cascader, Modal, message } from 'antd';
+import { Space, Button, Input, DatePicker, Cascader, Modal, message, Table, Checkbox, Pagination } from 'antd';
 import { EditOutlined, SaveOutlined, DeleteOutlined } from "@ant-design/icons";
 import { supabase } from '../../../supabaseClient';
 import ExpenseFilter from '../ExpenseFilter/expenseFilter';
 import dayjs from 'dayjs';
 import ExpenseAdd from '../ExpenseList/Add/ExpenseAdd';
-
-const ListItem = ({ item, isSelected, onSelect, onDelete, onUpdate }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedItem, setEditedItem] = useState({ ...item });
-
-
-  const handleInputChange = (field, value) => {
-    setEditedItem((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleSave = async () => {
-    // Update the item in the database
-    const { error } = await supabase
-      .from("expense")
-      .update({
-        expense_date: editedItem.expense_date,
-        category: editedItem.category,
-        description: editedItem.description,
-        amount: editedItem.amount
-      })
-      .eq("expense_id", item.expense_id);
-
-    if (error) {
-      console.error("Error updating expense:", error);
-    } else {
-      onUpdate();
-      setIsEditing(false);
-    }
-  };
-
-  return (
-    <div className="flex w-full border-b border-zinc-200 hover:bg-gray-50">
-      <div className="flex items-center p-4 w-14">
-        <input
-          type="checkbox"
-          checked={isSelected}
-          onChange={onSelect}
-          className="w-5 h-5 rounded-md border-2 border-neutral-300"
-        />
-      </div>
-      <div className="flex-none w-32 p-4">{item.expense_id}</div>
-      <div className="flex-1 p-4">
-        {isEditing ? (
-          <Cascader
-            options={[
-              { value: 'Operations', label: 'Operations' },
-              { value: 'Marketing', label: 'Marketing' },
-              { value: 'Technology', label: 'Technology' },
-              { value: 'Personnel', label: 'Personnel' }
-            ]}
-            onChange={(value) => handleInputChange("category", value[0])}
-            placeholder={item.category}
-          />
-        ) : (
-          item.category
-        )}
-      </div>
-      <div className="flex-none w-32 p-4">
-
-        {isEditing ? (
-          <DatePicker
-            value={dayjs(editedItem.expense_date)}
-            onChange={(date, dateString) => handleInputChange("expense_date", dateString)}
-            format="YYYY-MM-DD"
-            needConfirm />
-        ) : (
-          item.expense_date
-        )}
-      </div>
-      <div className="flex-1 p-4">
-        {isEditing ? (
-          <Input
-            value={editedItem.description}
-            onChange={(e) => handleInputChange("description", e.target.value)}
-          />
-        ) : (
-          item.description
-        )}
-      </div>
-      <div className="flex-none w-32 p-4">
-        {isEditing ? (
-          <Input
-            value={editedItem.amount}
-            onChange={(e) => handleInputChange("amount", e.target.value)}
-          />
-        ) : (
-          "$" + item.amount
-        )}
-      </div>
-      <div className="flex-none w-32 p-4">
-        <Space>
-          {isEditing ? (
-            <>
-              <Button icon={<SaveOutlined />} onClick={handleSave} />
-              <Button onClick={() => setIsEditing(false)}>Cancel</Button>
-            </>
-          ) : (
-            <Button icon={<EditOutlined />} onClick={() => setIsEditing(true)} />
-          )}
-          <Button
-            icon={<DeleteOutlined onClick={
-              async (expenseId) => {
-                Modal.confirm({
-                  title: 'Are you sure?',
-                  content: 'This action will permanently delete the expense.',
-                  okText: 'Yes, delete it',
-                  cancelText: 'Cancel',
-                  onOk: async () => {
-                    try {
-                      let { error } = await supabase
-                        .from("expense")
-                        .delete()
-                        .eq("expense_id", item.expense_id);
-
-                      if (error) {
-                        message.error('Failed to delete the expense.');
-                        console.error('Error deleting expense:', error);
-                      } else {
-                        onDelete();
-                        message.success('Expense deleted successfully.');
-                      }
-                    } catch (error) {
-                      console.error('Error in handleDelete:', error);
-                    }
-                  },
-                });
-
-              }} />}
-            danger />
-        </Space>
-      </div>
-    </div>
-  );
-};
-
 
 const ListView = ({ projectId }) => {
   const [expenses, setExpenses] = useState([]);
@@ -148,6 +13,8 @@ const ListView = ({ projectId }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
   const [selectAll, setSelectAll] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [editedItem, setEditedItem] = useState(null);
   const itemsPerPage = 10;
 
   const handlePageChange = (page) => {
@@ -167,7 +34,8 @@ const ListView = ({ projectId }) => {
     let { data: expense, error } = await supabase
       .from("expense")
       .select("*")
-      .eq("project_id", projectId);
+      .eq("project_id", projectId)
+      .order('expense_date', { ascending: false }); // Add this line for default sorting
 
     if (error) {
       console.error("Error fetching expenses:", error);
@@ -248,6 +116,156 @@ const ListView = ({ projectId }) => {
     });
   };
 
+  const handleSave = async (record) => {
+    const { error } = await supabase
+      .from("expense")
+      .update({
+        expense_date: editedItem.expense_date,
+        category: editedItem.category,
+        description: editedItem.description,
+        amount: editedItem.amount
+      })
+      .eq("expense_id", record.expense_id);
+
+    if (error) {
+      message.error("Failed to update expense");
+    } else {
+      message.success("Expense updated successfully");
+      setEditingId(null);
+      fetchExpenses();
+    }
+  };
+
+  const columns = [
+    {
+      title: <Checkbox 
+        checked={selectAll}
+        onChange={handleSelectAll}
+      />,
+      dataIndex: 'select',
+      width: 50,
+      render: (_, record) => (
+        <Checkbox
+          checked={selectedItems.has(record.expense_id)}
+          onChange={(e) => handleItemSelect(record.expense_id)}
+        />
+      ),
+    },
+    {
+      title: 'ID',
+      dataIndex: 'expense_id',
+      width: 100,
+    },
+    {
+      title: 'Category',
+      dataIndex: 'category',
+      render: (text, record) => {
+        if (editingId === record.expense_id) {
+          return (
+            <Cascader
+              options={[
+                { value: 'Operations', label: 'Operations' },
+                { value: 'Marketing', label: 'Marketing' },
+                { value: 'Technology', label: 'Technology' },
+                { value: 'Personnel', label: 'Personnel' }
+              ]}
+              onChange={(value) => setEditedItem({ ...editedItem, category: value[0] })}
+              defaultValue={[text]}
+            />
+          );
+        }
+        return text;
+      },
+    },
+    {
+      title: 'Date',
+      dataIndex: 'expense_date',
+      sorter: (a, b) => new Date(b.expense_date) - new Date(a.expense_date),
+      defaultSortOrder: 'descend',
+      render: (text, record) => {
+        if (editingId === record.expense_id) {
+          return (
+            <DatePicker
+              defaultValue={dayjs(text)}
+              onChange={(date, dateString) => 
+                setEditedItem({ ...editedItem, expense_date: dateString })}
+            />
+          );
+        }
+        return text;
+      },
+    },
+    {
+      title: 'Description',
+      dataIndex: 'description',
+      render: (text, record) => {
+        if (editingId === record.expense_id) {
+          return (
+            <Input
+              defaultValue={text}
+              onChange={(e) => 
+                setEditedItem({ ...editedItem, description: e.target.value })}
+            />
+          );
+        }
+        return text;
+      },
+    },
+    {
+      title: 'Amount',
+      dataIndex: 'amount',
+      render: (text, record) => {
+        if (editingId === record.expense_id) {
+          return (
+            <Input
+              defaultValue={text}
+              onChange={(e) => 
+                setEditedItem({ ...editedItem, amount: e.target.value })}
+            />
+          );
+        }
+        return `$${text}`;
+      },
+    },
+    {
+      title: 'Action',
+      key: 'action',
+      render: (_, record) => (
+        <Space>
+          {editingId === record.expense_id ? (
+            <>
+              <Button 
+                icon={<SaveOutlined />} 
+                onClick={() => handleSave(record)} 
+              />
+              <Button 
+                onClick={() => {
+                  setEditingId(null);
+                  setEditedItem(null);
+                }}
+              >
+                Cancel
+              </Button>
+            </>
+          ) : (
+            <Button
+              icon={<EditOutlined />}
+              onClick={() => {
+                setEditingId(record.expense_id);
+                setEditedItem({ ...record });
+              }}
+            />
+          )}
+          <Button
+            icon={<DeleteOutlined />}
+            danger
+            onClick={() => handleDelete(record.expense_id)}
+          />
+        </Space>
+      ),
+    },
+  ];
+
   return (
     <div className="w-full flex flex-col space-y-4">
       <ExpenseFilter
@@ -257,52 +275,34 @@ const ListView = ({ projectId }) => {
         selectedCount={selectedItems.size}
       />
 
-      <div className="w-full overflow-x-auto rounded-lg border border-solid border-zinc-200">
-        <div className="min-w-[1024px]">
-          <div className="flex w-full bg-white border border-solid border-zinc-200 text-sm font-medium text-slate-500">
-            <div className="flex items-center p-4 w-14">
-              <input
-                type="checkbox"
-                checked={selectAll}
-                onChange={handleSelectAll}
-                className="w-5 h-5 rounded-md border-2 border-neutral-300"
-              />
-            </div>
-            <div className="flex-none w-32 p-4">Expense ID</div>
-            <div className="flex-1 p-4">Category</div>
-            <div className="flex-none w-32 p-4">Date</div>
-            <div className="flex-1 p-4">Description</div>
-            <div className="flex-none w-32 p-4">Amount</div>
-            <div className="flex-none w-32 p-4">Action</div>
-          </div>
-          {isAdding && (
-            <ExpenseAdd
-              projectId={projectId}
-              onAdd={() => {
-                fetchExpenses();
-                setIsAdding(false);
-              }}
-              onCancel={() => setIsAdding(false)}
-            />
-          )}
-          {paginatedExpenses.map((item) => (
-            <ListItem
-              key={item.expense_id}
-              item={item}
-              isSelected={selectedItems.has(item.expense_id)}
-              onSelect={() => handleItemSelect(item.expense_id)}
-              onDelete={fetchExpenses}
-              onUpdate={fetchExpenses}
-            />
-          ))}
+      {isAdding && (
+        <div className="w-full border border-solid border-zinc-200 rounded-lg p-4 bg-white">
+          <ExpenseAdd
+            projectId={projectId}
+            onAdd={() => {
+              fetchExpenses();
+              setIsAdding(false);
+            }}
+            onCancel={() => setIsAdding(false)}
+          />
         </div>
+      )}
+
+      <div className="border bg-white border-solid border-zinc-200 rounded-lg overflow-hidden">
+        <Table
+          columns={columns}
+          dataSource={filteredExpenses}
+          rowKey="expense_id"
+          pagination={{
+            position: ['bottomCenter'],
+            current: currentPage,
+            pageSize: itemsPerPage,
+            total: filteredExpenses.length,
+            onChange: handlePageChange,
+          }}
+          className="w-full"
+        />
       </div>
-      <Pagination
-        defaultCurrent={1}
-        total={filteredExpenses.length}
-        pageSize={itemsPerPage}
-        onChange={handlePageChange}
-      />
     </div>
   );
 };
